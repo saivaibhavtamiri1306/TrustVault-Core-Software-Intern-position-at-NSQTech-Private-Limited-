@@ -2,7 +2,7 @@ import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../core/api.service';
-import { ToastService } from '../shared/toast.service';
+import { ToastService } from '../core/toast.service';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 
