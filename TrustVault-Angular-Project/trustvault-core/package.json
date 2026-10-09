@@ -30,6 +30,7 @@
     "@angular-devkit/build-angular": "^18.2.0",
     "@angular/cli": "^18.2.0",
     "@angular/compiler-cli": "^18.2.0",
+    "@netlify/angular-runtime": "3.0.1",
     "@types/three": "0.128.0",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.41",

@@ -81,7 +81,7 @@ import { ToastService } from '../core/toast.service';
           <p class="mb-6 font-mono text-xs text-[#22d3ee]">Enter the 6-digit code to continue.</p>
           <div class="relative mx-auto w-fit">
             <div class="flex gap-2">
-              <div *ngFor="let n of [0,1,2,3,4,5]" class="grid h-14 w-11 place-items-center rounded-lg border bg-black/40 font-mono text-2xl text-white transition-all duration-200" [class.border-[#22d3ee] bg-[#22d3ee]/10]="otp[n]">
+              <div *ngFor="let n of [0,1,2,3,4,5]" class="grid h-14 w-11 place-items-center rounded-lg border bg-black/40 font-mono text-2xl text-white transition-all duration-200" [ngClass]="otp[n] ? 'border-[#22d3ee] bg-[#22d3ee]/10' : 'border-white/10'">
                 {{ otp[n] || '' }}
               </div>
             </div>

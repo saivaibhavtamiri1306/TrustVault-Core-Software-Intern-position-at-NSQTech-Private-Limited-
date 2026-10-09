@@ -10,7 +10,19 @@ export class AuthService {
   readonly user = signal<AppUser | null>(null);
   readonly isAdmin = computed(() => this.user()?.role === 'Admin');
 
-  login(req: LoginRequest) { return this.api.login(req); }
+  /** Session returned by the password step; only activated once 2FA succeeds. */
+  private pending: Session | null = null;
+
+  login(req: LoginRequest) {
+    return this.api.login(req).pipe(tap(s => this.pending = s));
+  }
+
+  /** Second factor: on success the pending session becomes the active one. */
+  verifyMfa(otp: string) {
+    return this.api.verifyMfa(otp).pipe(tap(() => {
+      if (this.pending) { this.start(this.pending); this.pending = null; }
+    }));
+  }
 
   /** Called once the 2FA + biometric scan finish. */
   start(session: Session): void {
@@ -22,11 +34,12 @@ export class AuthService {
   restore() {
     if (!sessionStorage.getItem(TOKEN_KEY)) return of(null);
     return this.api.me().pipe(
-      tap(u => this.user.set(u)),
+      tap((u: AppUser) => this.user.set(u)),
       catchError(() => { this.logout(); return of(null); }));
   }
 
   logout(): void {
+    this.pending = null;
     sessionStorage.removeItem(TOKEN_KEY);
     Object.keys(localStorage).filter(k => k.startsWith('tv_cache:')).forEach(k => localStorage.removeItem(k)); // never keep another user's cached data
     this.user.set(null);
