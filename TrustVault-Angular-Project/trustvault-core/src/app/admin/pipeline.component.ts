@@ -1,5 +1,7 @@
 import { CdkDragDrop, DragDropModule, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
-import { ChangeDetectionStrategy, Component, effect, inject, input, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, signal, untracked } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { finalize } from 'rxjs';
 import { ApiService } from '../core/api.service';
 import { Candidate, STAGES, Stage } from '../core/models';
 import { ToastService } from '../core/toast.service';
@@ -20,10 +22,10 @@ import { TranslatePipe } from '../shared/translate.pipe';
       @for (col of board(); track $index; let i = $index) {
         <div class="glass-panel min-h-[22rem] p-4">
           <div class="mb-4 flex items-center justify-between">
-            <h3 class="text-sm font-mono font-bold uppercase tracking-wider" [class]="i === 3 ? 'text-emerald-300' : 'text-brand-300'">{{ stages[i] }}</h3>
+            <h3 class="text-sm font-mono font-bold uppercase tracking-wider" [class]="i === 3 ? 'text-emerald-300' : 'text-brand-300'">{{ stages[i] | translate }}</h3>
             <span class="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono text-slate-300">{{ col.length }}</span>
           </div>
-          <div cdkDropList [cdkDropListData]="col" (cdkDropListDropped)="drop($event, i)" class="min-h-[16rem] space-y-3">
+          <div cdkDropList [cdkDropListData]="col" [cdkDropListDisabled]="saving()" (cdkDropListDropped)="drop($event, i)" class="min-h-[16rem] space-y-3">
             @for (c of col; track c.id) {
               <div cdkDrag class="cursor-grab rounded-xl border border-white/10 bg-black/40 p-4 transition hover:border-brand-400/50 active:cursor-grabbing">
                 <div class="flex items-center justify-between">
@@ -48,9 +50,11 @@ export class PipelineComponent {
   candidates = input<Candidate[]>([]);
   private api = inject(ApiService);
   private toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly stages = STAGES;
   readonly board = signal<Candidate[][]>([[], [], [], []]);
+  readonly saving = signal(false);
 
   constructor() {
     effect(() => {
@@ -60,15 +64,26 @@ export class PipelineComponent {
   }
 
   drop(e: CdkDragDrop<Candidate[]>, stage: number): void {
+    if (this.saving() || stage < 0 || stage >= STAGES.length) return;
     if (e.previousContainer === e.container) {
       moveItemInArray(e.container.data, e.previousIndex, e.currentIndex);
     } else {
+      const previousBoard = this.board().map(column => [...column]);
+      const previousStage = e.previousContainer.data[e.previousIndex].stage;
       transferArrayItem(e.previousContainer.data, e.container.data, e.previousIndex, e.currentIndex);
       const c = e.container.data[e.currentIndex];
       c.stage = stage as Stage;
-      this.api.setStage(c.id, c.stage).subscribe({
+      this.saving.set(true);
+      this.api.setStage(c.id, c.stage).pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.saving.set(false))
+      ).subscribe({
         next: () => this.toast.show(`${c.name} moved to ${STAGES[stage]}`, 'ok'),
-        error: () => this.toast.show('Could not save the new stage', 'err'),
+        error: () => {
+          c.stage = previousStage;
+          this.board.set(previousBoard);
+          this.toast.show('Could not save the new stage. The move was undone.', 'err');
+        },
       });
     }
     this.board.update(b => b.slice()); // the CDK edits the arrays in place, so hand OnPush a new reference

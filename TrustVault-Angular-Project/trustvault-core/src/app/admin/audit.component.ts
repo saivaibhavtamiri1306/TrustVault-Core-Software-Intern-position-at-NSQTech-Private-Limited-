@@ -1,25 +1,29 @@
-import { Component, OnInit, ElementRef, ViewChild, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, OnDestroy, ElementRef, ViewChild, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../core/api.service';
 import { ToastService } from '../core/toast.service';
+import { CsvService } from '../core/csv.service';
+import { LogEntry } from '../core/models';
+import { TranslatePipe } from '../shared/translate.pipe';
 
 @Component({
   selector: 'tv-audit',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   template: `
 <div class="mx-auto max-w-6xl p-4 lg:p-8 route-in">
   <div class="mb-8">
-    <h2 class="mb-1 text-3xl font-bold">Audit <span class="font-light text-[#22d3ee]">Ledger</span></h2>
-    <p class="font-mono text-sm text-slate-400">Cryptographically secure, append-only event log.</p>
+    <h2 class="mb-1 text-3xl font-bold">{{ 'Audit' | translate }} <span class="font-light text-[#22d3ee]">{{ 'Ledger' | translate }}</span></h2>
+    <p class="font-mono text-sm text-slate-400">{{ 'Cryptographically secure, append-only event log.' | translate }}</p>
   </div>
 
   <div class="glass-panel overflow-hidden border-[#22d3ee]/20">
     <div class="flex items-center justify-between border-b border-[#22d3ee]/30 bg-[#164e63]/30 p-4">
       <span class="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-[#22d3ee]">
-        <span class="h-2 w-2 rounded-full bg-emerald-400"></span> Ledger Integrity Confirmed
+        <span class="h-2 w-2 rounded-full bg-emerald-400"></span> {{ 'Demo audit ledger' | translate }}
       </span>
-      <button class="rounded border border-white/20 px-3 py-1 font-mono text-xs text-slate-400 hover:text-white">Export CSV</button>
+      <button class="rounded border border-white/20 px-3 py-1 font-mono text-xs text-slate-400 hover:text-white" [disabled]="!events.length" (click)="exportCsv()">{{ 'Export CSV' | translate }}</button>
     </div>
     
     <div *ngFor="let l of staticLogs" class="flex items-center border-b border-white/5 p-4 font-mono text-sm transition hover:bg-white/5" [ngClass]="l[4] ? 'border-l-2 border-l-[#ff003c] bg-[#ff003c]/10' : 'border-l-2 border-l-transparent'">
@@ -35,16 +39,16 @@ import { ToastService } from '../core/toast.service';
   <div class="glass-panel mt-8 overflow-hidden border-[#22d3ee]/20">
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#22d3ee]/30 bg-[#164e63]/30 p-4">
       <div>
-        <p class="font-mono text-xs uppercase tracking-widest text-[#22d3ee]">Live Event Stream · <span>{{ events.length | number }}</span> events</p>
-        <p class="font-mono text-[10px] text-slate-500">{{ vinfo }}</p>
+        <p class="font-mono text-xs uppercase tracking-widest text-[#22d3ee]">{{ 'Live Event Stream' | translate }} · <span>{{ events.length | number }}</span> {{ 'events' | translate }}</p>
+        <p class="font-mono text-[10px] text-slate-500">{{ 'Visible events' | translate }}: {{ visibleEvents.length }} / {{ events.length }}</p>
       </div>
       <div class="flex items-center gap-3">
         <div *ngIf="hashing" class="h-1.5 w-40 overflow-hidden rounded bg-white/10">
           <div class="h-full bg-[#22d3ee] transition-all duration-300" [style.width.%]="hashProgress"></div>
         </div>
-        <span *ngIf="hashResult" class="font-mono text-xs text-emerald-400">{{ hashResult }}</span>
+        <span *ngIf="hashResult" class="font-mono text-xs text-emerald-400">{{ hashComplete ? ('Hashed entries' | translate) + ': ' + events.length + ' · ' + hashTime + ' ms' : ('Could not verify the chain. Please retry.' | translate) }}</span>
         <button class="btn-cyber w-auto sm" [disabled]="hashing || events.length === 0" (click)="verifyChain()">
-          {{ hashing ? 'Hashing…' : 'Verify chain in Web Worker' }}
+          {{ (hashing ? 'Hashing…' : 'Verify chain in Web Worker') | translate }}
         </button>
       </div>
     </div>
@@ -59,7 +63,7 @@ import { ToastService } from '../core/toast.service';
             <span class="w-44 text-slate-500">{{ e.time }}</span>
             <span class="w-36 font-bold" [ngClass]="e.evt === 'AUTH_FAIL' || e.evt === 'FIREWALL_BLOCK' ? 'text-[#ff003c]' : 'text-emerald-400'">{{ e.evt }}</span>
             <span class="flex-1 text-slate-300">{{ e.user }} <span class="text-slate-600">·</span> {{ e.ip }}</span>
-            <span class="rounded border border-white/5 bg-black/40 px-2 py-1 text-[10px] text-slate-500">{{ e.hash ? (e.hash | slice:0:14) + '…' : 'not hashed yet' }}</span>
+            <span class="rounded border border-white/5 bg-black/40 px-2 py-1 text-[10px] text-slate-500">{{ e.hash ? (e.hash | slice:0:14) + '…' : ('not hashed yet' | translate) }}</span>
           </div>
 
         </div>
@@ -70,9 +74,12 @@ import { ToastService } from '../core/toast.service';
 </div>
   `
 })
-export class AuditComponent implements OnInit {
+export class AuditComponent implements OnInit, OnDestroy {
   private readonly api = inject(ApiService);
   private readonly toast = inject(ToastService);
+  private readonly csv = inject(CsvService);
+  private readonly destroyRef = inject(DestroyRef);
+  private worker?: Worker;
   @ViewChild('scrollHost', { static: true }) scrollHost!: ElementRef<HTMLDivElement>;
 
   readonly staticLogs = [
@@ -87,11 +94,13 @@ export class AuditComponent implements OnInit {
   
   currentTime = new Date().toISOString().split('T')[1].slice(0, -1);
   
-  events: any[] = [];
-  visibleEvents: any[] = [];
+  events: LogEntry[] = [];
+  visibleEvents: LogEntry[] = [];
   hashing = false;
   hashProgress = 0;
   hashResult = '';
+  hashComplete = false;
+  hashTime = 0;
   vinfo = 'Loading events...';
 
   private readonly rowHeight = 48;
@@ -99,13 +108,16 @@ export class AuditComponent implements OnInit {
   offsetY = 0;
 
   ngOnInit(): void {
-    this.api.get<any[]>('/audit/stream').subscribe({
+    this.api.get<LogEntry[]>('/audit/stream').pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (data) => {
         this.events = data;
         this.totalHeight = this.events.length * this.rowHeight;
         this.updateVirtualScroll();
       },
-      error: () => this.toast.show('Failed to fetch audit logs', 'err')
+      error: () => {
+        this.vinfo = 'Could not load audit events. Reopen the ledger to retry.';
+        this.toast.show('Failed to fetch audit logs', 'err');
+      }
     });
   }
 
@@ -122,44 +134,53 @@ export class AuditComponent implements OnInit {
     this.vinfo = `Rendering only ${end - start} of ${this.events.length.toLocaleString()} rows in the DOM`;
   }
 
+  exportCsv(): void {
+    this.csv.download('trustvault-audit.csv', ['Index', 'Time', 'Event', 'User', 'IP', 'Hash'],
+      this.events.map(event => [event.i, event.time, event.evt, event.user, event.ip, event.hash]));
+    this.toast.show(`Exported ${this.events.length} audit events`, 'ok');
+  }
+
   verifyChain(): void {
+    if (this.hashing || !this.events.length) return;
     this.hashing = true;
     this.hashProgress = 0;
-
-    const workerCode = `
-      const hex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
-      onmessage = async ({ data }) => {
-        const t0 = performance.now();
-        const enc = new TextEncoder();
-        const out = [];
-        let prev = '0'.repeat(64);
-        for (let i = 0; i < data.length; i++) {
-          prev = hex(await crypto.subtle.digest('SHA-256', enc.encode(prev + data[i])));
-          out.push(prev);
-          if (i % 500 === 0) postMessage({ type: 'p', pct: Math.round((i / data.length) * 100) });
-        }
-        postMessage({ type: 'd', hashes: out, ms: Math.round(performance.now() - t0) });
-      };
-    `;
-
-    const blob = new Blob([workerCode], { type: 'application/javascript' });
-    const worker = new Worker(URL.createObjectURL(blob));
-
-    const payload = this.events.map(l => `${l.i}|${l.time}|${l.evt}|${l.user}|${l.ip}`);
-
-    worker.onmessage = ({ data }) => {
-      if (data.type === 'p') {
-        this.hashProgress = data.pct;
-      } else {
-        this.events = this.events.map((l, i) => ({ ...l, hash: data.hashes[i] }));
-        this.updateVirtualScroll(this.scrollHost.nativeElement.scrollTop);
-        this.hashResult = `✔ ${this.events.length.toLocaleString()} hashed in ${data.ms} ms (worker)`;
-        this.hashing = false;
-        this.toast.show(`Chain verified: ${this.events.length.toLocaleString()} entries`, 'ok');
-        worker.terminate();
-      }
+    this.hashResult = '';
+    this.hashComplete = false;
+    const fail = () => {
+      this.worker?.terminate();
+      this.worker = undefined;
+      this.hashing = false;
+      this.hashResult = 'Could not verify the chain. Please retry.';
+      this.toast.show('Audit verification failed', 'err');
     };
+    try {
+      const worker = new Worker(new URL('./hash.worker', import.meta.url), { type: 'module' });
+      this.worker = worker;
+      worker.onerror = fail;
+      worker.onmessageerror = fail;
+      worker.onmessage = ({ data }) => {
+        if (data.type === 'progress') {
+          this.hashProgress = data.pct;
+        } else if (data.type === 'done') {
+          this.hashComplete = true;
+          this.hashTime = data.ms;
+          this.events = this.events.map((event, index) => ({ ...event, hash: data.hashes[index] }));
+          this.updateVirtualScroll(this.scrollHost.nativeElement.scrollTop);
+          this.hashProgress = 100;
+          this.hashResult = `${this.events.length.toLocaleString()} hashed in ${data.ms} ms (worker)`;
+          this.hashing = false;
+          this.toast.show(`Chain verified: ${this.events.length.toLocaleString()} entries`, 'ok');
+          worker.terminate();
+          this.worker = undefined;
+        }
+      };
+      worker.postMessage(this.events.map(event => `${event.i}|${event.time}|${event.evt}|${event.user}|${event.ip}`));
+    } catch {
+      fail();
+    }
+  }
 
-    worker.postMessage(payload);
+  ngOnDestroy(): void {
+    this.worker?.terminate();
   }
 }
