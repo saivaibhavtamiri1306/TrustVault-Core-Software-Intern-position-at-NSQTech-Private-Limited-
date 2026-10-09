@@ -205,7 +205,7 @@ export class RecordsComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.api.get<any[]>('/records').subscribe({
       next: d => { this.records = d; this.loading = false; },
-      error: e => { this.loading = false; this.toast.show(e?.error?.message ?? 'Could not load records', 'err'); }
+      error: (e: any) => { this.loading = false; this.toast.show((e as any)?.error?.message ?? 'Could not load records', 'err'); }
     });
   }
 
@@ -226,7 +226,7 @@ export class RecordsComponent implements OnInit, OnDestroy {
       next: c => {
         this.selectedCandidate = c;
         this.pollTimer = setInterval(() => {
-          this.api.get<any>(`/candidates/${r.candidateId}/status`).subscribe(status => {
+          this.api.get<any>(`/candidates/${r.candidateId}/status`).subscribe((status: any) => {
             if (this.selectedCandidate && this.selectedCandidate.stage !== status.stage) {
               this.selectedCandidate.stage = status.stage;
               this.toast.show('Verification update: ' + this.stages[status.stage], 'ok');
@@ -247,7 +247,7 @@ export class RecordsComponent implements OnInit, OnDestroy {
   exportCsv(): void {
     const rows = [['File ID', 'Asset Name', 'Clearance', 'Size', 'Status'], ...this.filtered.map(r => [r.id, r.title, r.level, r.size, r.status])];
     const csv = rows.map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\r\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/css;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = 'trustvault-records.csv';
