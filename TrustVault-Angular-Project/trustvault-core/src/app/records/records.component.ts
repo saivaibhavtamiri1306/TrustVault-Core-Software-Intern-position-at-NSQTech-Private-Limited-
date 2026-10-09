@@ -281,7 +281,7 @@ export class RecordsComponent implements OnInit, OnDestroy {
         ${row('Verification stage', `${this.stages[this.selectedCandidate.stage]} (${this.selectedCandidate.stage + 1} of 4)`)}
       </table>
       <div style="margin-top:32px;display:flex;gap:8px">
-        ${this.stages.map((s, i) => `<div style="flex:1;padding:10px;text-align:center;font-size:12px;border-radius:6px;background:${i <= (this.selectedCandidate?.stage || 0) ? '#06b6d4' : '#e2e8f0'};color:${i <= (this.selectedCandidate?.stage \vert{}\vert{} 0) ? '#fff' : '#64748b'}">${s}</div>`).join('')}
+        ${this.stages.map((stage, index) => `<div style="flex:1;padding:10px;text-align:center;font-size:12px;border-radius:6px;background:${index <= (this.selectedCandidate?.stage || 0) ? '#06b6d4' : '#e2e8f0'};color:${index <= (this.selectedCandidate?.stage || 0) ? '#fff' : '#64748b'}">${stage}</div>`).join('')}
       </div>
       <p style="margin-top:40px;font-size:11px;color:#94a3b8">This document is part of a demonstration. All names and numbers are fictional.</p>
     `;

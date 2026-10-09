@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { AppUser, Candidate, LoginRequest, Session } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -19,6 +20,34 @@ export class ApiService {
 
   put<T>(path: string, body: unknown): Observable<T> {
     return this.http.put<T>(`${this.base}${path}`, body);
+  }
+
+  login(request: LoginRequest): Observable<Session> {
+    return this.post<Session>('/auth/login', request);
+  }
+
+  me(): Observable<AppUser> {
+    return this.get<AppUser>('/users/me');
+  }
+
+  candidates(): Observable<Candidate[]> {
+    return this.get<Candidate[]>('/candidates');
+  }
+
+  candidate(id: string): Observable<Candidate> {
+    return this.get<Candidate>(`/candidates/${encodeURIComponent(id)}`);
+  }
+
+  candidateStatus(id: string): Observable<Pick<Candidate, 'stage' | 'score'>> {
+    return this.get<Pick<Candidate, 'stage' | 'score'>>(`/candidates/${encodeURIComponent(id)}/status`);
+  }
+
+  checkId(id: string): Observable<{ exists: boolean }> {
+    return this.get<{ exists: boolean }>(`/users/check/${encodeURIComponent(id)}`);
+  }
+
+  logEvent(event: string): Observable<{ ok: boolean }> {
+    return this.post<{ ok: boolean }>('/audit/event', { evt: event });
   }
 
   setStage(id: string, stage: number): Observable<any> {

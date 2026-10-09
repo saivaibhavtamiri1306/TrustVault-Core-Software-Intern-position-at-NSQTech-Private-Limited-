@@ -11,7 +11,7 @@ Follow the steps in order. Do not skip. You can do it! 💪
 |---|---|---|
 | **GitHub account** | Your shelf on the internet | https://github.com → *Sign up* |
 | **Git** | The tool that sends your files to the shelf | https://git-scm.com/downloads → install with all default options |
-| **Node.js 20** | Needed to run the website | https://nodejs.org → *LTS* |
+| **Node.js 22.22.0** | Matches the website's `.nvmrc` and Netlify runtime requirements | https://nodejs.org → *Previous Releases* |
 
 Check that they work. Open **Terminal** (Windows: press the Windows key, type `cmd`, press Enter) and type:
 
