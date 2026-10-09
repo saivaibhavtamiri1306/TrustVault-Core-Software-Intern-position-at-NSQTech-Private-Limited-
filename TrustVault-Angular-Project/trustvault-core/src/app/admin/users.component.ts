@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiService } from '../core/api.service';
-import { ToastService } from '../shared/toast.service';
+import { ToastService } from '../core/toast.service';
 
 @Component({
   selector: 'tv-users',
