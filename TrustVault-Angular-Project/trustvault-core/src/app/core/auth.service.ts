@@ -12,6 +12,8 @@ export class AuthService {
 
   login(req: LoginRequest) { return this.api.login(req); }
 
+  verifyMfa(otp: string) { return this.api.post<{ ok: boolean }>('/auth/mfa', { otp }); }
+
   /** Called once the 2FA + biometric scan finish. */
   start(session: Session): void {
     sessionStorage.setItem(TOKEN_KEY, session.token);

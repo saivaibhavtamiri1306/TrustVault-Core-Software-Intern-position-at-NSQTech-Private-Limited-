@@ -13,7 +13,7 @@ import { ToastService } from '../core/toast.service';
   <div class="mb-8 flex items-end justify-between">
     <div>
       <h1 class="mb-1 text-4xl font-bold tracking-tight">Command <span class="font-light text-[#22d3ee]">Center</span></h1>
-      <p class="font-mono text-sm uppercase tracking-widest text-slate-400">Operator: {{ auth.user?.name }} // Level: Beta (Internal)</p>
+      <p class="font-mono text-sm uppercase tracking-widest text-slate-400">Operator: {{ auth.user()?.name }} // Level: Beta (Internal)</p>
     </div>
     <div class="text-right">
       <div class="mb-1 font-mono text-xs text-[#22d3ee]">SYSTEM INTEGRITY</div>
@@ -24,13 +24,13 @@ import { ToastService } from '../core/toast.service';
   <div class="mb-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
     <div class="glass-panel relative flex items-center gap-6 overflow-hidden border-[#22d3ee]/30 p-5 lg:col-span-2">
       <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-[#22d3ee] bg-[#164e63]">
-        <span class="text-2xl">{{ auth.user?.name?.charAt(0) }}</span>
+        <span class="text-2xl">{{ auth.user()?.name?.charAt(0) }}</span>
       </div>
       <div>
-        <h3 class="text-xl font-bold text-white">{{ auth.user?.name }}</h3>
-        <p class="mb-2 font-mono text-sm text-[#67e8f9]">{{ auth.user?.role }}</p>
+        <h3 class="text-xl font-bold text-white">{{ auth.user()?.name }}</h3>
+        <p class="mb-2 font-mono text-sm text-[#67e8f9]">{{ auth.user()?.role }}</p>
         <div class="flex gap-4 font-mono text-xs text-slate-400">
-          <span>ID: {{ auth.user?.id }}</span>
+          <span>ID: {{ auth.user()?.id }}</span>
           <span>IP: 192.168.1.104 (SECURE)</span>
         </div>
       </div>
@@ -39,7 +39,7 @@ import { ToastService } from '../core/toast.service';
     <div class="glass-panel group relative overflow-hidden p-5">
       <div class="absolute right-0 top-0 h-16 w-16 rounded-bl-full bg-[#22d3ee]/10 transition-transform group-hover:scale-150"></div>
       <p class="mb-1 font-mono text-xs text-slate-400">ACCESSIBLE RECORDS</p>
-      <p class="mb-2 text-4xl font-bold text-white">{{ auth.user?.role === 'Admin' ? 12 : 8 }}</p>
+      <p class="mb-2 text-4xl font-bold text-white">{{ auth.user()?.role === 'Admin' ? 12 : 8 }}</p>
       <div class="h-1.5 w-full overflow-hidden rounded-full bg-slate-800"><div class="h-full w-3/4 bg-[#22d3ee]"></div></div>
     </div>
 

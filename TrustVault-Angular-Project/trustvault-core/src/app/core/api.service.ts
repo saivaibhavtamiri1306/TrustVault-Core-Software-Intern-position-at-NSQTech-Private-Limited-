@@ -1,11 +1,25 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_URL } from './api.config';
+import { AppUser, Candidate, LoginRequest, Session } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly http = inject(HttpClient);
-  private readonly base = '/api'; 
+  private readonly base = API_URL;
+
+  login(req: LoginRequest): Observable<Session> {
+    return this.post<Session>('/auth/login', req);
+  }
+
+  me(): Observable<AppUser> {
+    return this.get<AppUser>('/users/me');
+  }
+
+  candidates(): Observable<Candidate[]> {
+    return this.get<Candidate[]>('/candidates');
+  }
 
   get<T>(path: string, params?: Record<string, string | number | boolean>): Observable<T> {
     let hp = new HttpParams();
