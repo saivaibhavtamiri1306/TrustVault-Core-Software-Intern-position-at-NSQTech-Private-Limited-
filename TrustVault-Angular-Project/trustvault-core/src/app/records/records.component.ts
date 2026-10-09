@@ -73,12 +73,12 @@ import html2canvas from 'html2canvas';
             <td class="p-5 text-slate-500">{{ r.id }}</td>
             <td class="p-5 font-sans font-medium" [ngClass]="r.status === 'Locked' ? 'text-slate-600' : 'text-white group-hover:text-[#67e8f9]'">{{ r.title }}</td>
             <td class="p-5">
-              <span class="rounded border px-2 py-1 text-[10px] uppercase" [ngClass]="{'border-emerald-500/50 text-emerald-400': r.level === 'Public', 'border-[#22d3ee]/50 text-[#22d3ee]': r.level === 'Internal', 'border-[#ff003c]/50 text-[#ff003c]': r.level === 'Confidential'}">{{ r.level }}</span>
+              <span class="rounded border px-2 py-1 text-[10px] uppercase" [ngClass]="{'border-emerald-500/50 text-emerald-400': r.level === 'Public', 'border-[#22d3ee]/50 text-[#22d3ee]': r.level === 'Internal', 'border-red-500/50 text-red-400': r.level === 'Confidential'}">{{ r.level }}</span>
             </td>
             <td class="p-5 text-slate-500">{{ r.size }}</td>
             <td class="p-5 text-right">
-              <span *ngIf="r.status === 'Decrypted'" class="inline-flex items-center gap-2 text-[#22d3ee]"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg> OPEN</span>
-              <span *ngIf="r.status === 'Locked'" class="inline-flex items-center gap-2 text-[#ff003c]"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> LOCKED</span>
+              <span *ngIf="r.status === 'Decrypted'" class="inline-flex items-center gap-2 text-[#22d3ee]"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>Decrypted</span>
+              <span *ngIf="r.status === 'Locked'" class="inline-flex items-center gap-2 text-[#ff003c]"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>Locked</span>
             </td>
           </tr>
         </tbody>
@@ -107,10 +107,10 @@ import html2canvas from 'html2canvas';
           <div class="h-2 rounded bg-white/15" style="width: 78%"></div>
           <div class="h-2 rounded bg-white/15" style="width: 85%"></div>
           <div class="h-2 rounded bg-white/15" style="width: 60%"></div>
-          <p class="pt-3 font-mono text-[11px] leading-relaxed text-slate-300">{{ selected.title }}. Classification: {{ selected.level }}. Size {{ selected.size }}. Source ID {{ selected.candidateId }}. Hash-chained and stored in the audit ledger.</p>
+          <p class="pt-3 font-mono text-[11px] leading-relaxed text-slate-300">{{ selected.title }}. Classification: {{ selected.level }}. Size {{ selected.size }}. Source ID {{ selected.candidateId }}</p>
         </div>
         <div *ngIf="!decrypted" class="absolute inset-x-0 h-0.5 bg-[#ff003c] shadow-[0_0_14px_#ff003c]" style="animation: scanline 2s linear infinite alternate;"></div>
-        <div class="absolute bottom-3 left-3 rounded px-2 py-1 font-mono text-[10px]" [ngClass]="decrypted ? 'bg-black/70 text-[#22d3ee]' : 'animate-pulse bg-black/70 text-[#ff003c]'">● {{ decrypted ? 'DECRYPTED' : 'DECRYPTING…' }}</div>
+        <div class="absolute bottom-3 left-3 rounded px-2 py-1 font-mono text-[10px]" [ngClass]="decrypted ? 'bg-black/70 text-[#22d3ee]' : 'animate-pulse bg-black/70 text-[#ff003c]'">● {{ decrypted ? 'DECRYPTED' : 'DECRYPTING' }}</div>
       </div>
 
       <div class="space-y-4" *ngIf="selectedCandidate">
@@ -124,7 +124,7 @@ import html2canvas from 'html2canvas';
           <div class="relative inline-block" style="width: 110px; height: 110px;">
             <svg viewBox="0 0 100 100" class="h-full w-full -rotate-90">
               <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="8"/>
-              <circle cx="50" cy="50" r="42" fill="none" [attr.stroke]="selectedCandidate.score >= 85 ? '#34d399' : '#22d3ee'" stroke-width="8" stroke-linecap="round" [attr.stroke-dasharray]="getCircumference()" [attr.stroke-dashoffset]="getDashOffset(selectedCandidate.score)" style="transition: stroke-dashoffset 1.4s cubic-bezier(.16,1,.3,1); filter: drop-shadow(0 0 5px rgba(34,211,238,.6))"/>
+              <circle cx="50" cy="50" r="42" fill="none" [attr.stroke]="selectedCandidate.score >= 85 ? '#34d399' : '#22d3ee'" stroke-width="8" stroke-linecap="round" [attr.stroke-dasharray]="getCircumference()" [attr.stroke-dashoffset]="getDashOffset(selectedCandidate.score)"/>
             </svg>
             <div class="absolute inset-0 grid place-items-center text-center">
               <div>
@@ -141,7 +141,7 @@ import html2canvas from 'html2canvas';
                 <span *ngIf="i < 3" class="absolute bottom-0 left-[15px] top-8 w-0.5 bg-white/10">
                   <span class="block w-full bg-[#22d3ee] transition-all duration-500" [style.height]="selectedCandidate.stage > i ? '100%' : '0'"></span>
                 </span>
-                <span class="relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full border text-xs font-mono transition-all duration-500" [ngClass]="selectedCandidate.stage >= i ? 'border-[#22d3ee] bg-[#22d3ee]/20 text-[#67e8f9] shadow-[0_0_14px_rgba(34,211,238,.5)]' : 'border-white/15 text-slate-500'">
+                <span class="relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full border text-xs font-mono transition-all duration-500" [ngClass]="selectedCandidate.stage >= i ? 'border-[#22d3ee] bg-[#22d3ee]/10 text-[#22d3ee]' : 'border-white/20 text-slate-500'">
                   {{ selectedCandidate.stage > i ? '✓' : i + 1 }}
                 </span>
                 <div>
@@ -281,7 +281,7 @@ export class RecordsComponent implements OnInit, OnDestroy {
         ${row('Verification stage', `${this.stages[this.selectedCandidate.stage]} (${this.selectedCandidate.stage + 1} of 4)`)}
       </table>
       <div style="margin-top:32px;display:flex;gap:8px">
-        ${this.stages.map((s, i) => `<div style="flex:1;padding:10px;text-align:center;font-size:12px;border-radius:6px;background:${i <= (this.selectedCandidate?.stage || 0) ? '#06b6d4' : '#e2e8f0'};color:${i <= (this.selectedCandidate?.stage \vert{}\vert{} 0) ? '#fff' : '#64748b'}">${s}</div>`).join('')}
+        ${this.stages.map((s, i) => `<div style="flex:1;padding:10px;text-align:center;font-size:12px;border-radius:6px;background:${i <= (this.selectedCandidate?.stage || 0) ? '#06b6d4' : '#e2e8f0'};color:${i <= (this.selectedCandidate?.stage || 0) ? '#fff' : '#64748b'}">${s}</div>`).join('')}
       </div>
       <p style="margin-top:40px;font-size:11px;color:#94a3b8">This document is part of a demonstration. All names and numbers are fictional.</p>
     `;
