@@ -1,106 +1,135 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ApiService } from '../core/api.service';
 import { AuthService } from '../core/auth.service';
-import { TrafficChartComponent } from '../shared/traffic-chart.component';
-import { TranslatePipe } from '../shared/translate.pipe';
-import { WorkspaceComponent } from '../workspace/workspace.component';
+import { ToastService } from '../shared/toast.service';
 
 @Component({
-  selector: 'app-dashboard',
+  selector: 'tv-dashboard',
   standalone: true,
-  imports: [TrafficChartComponent, TranslatePipe, WorkspaceComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule],
   template: `
-  @if (user(); as u) {
-  <div class="animate-fade-in-up max-w-6xl mx-auto p-4 lg:p-8">
-    <div class="flex justify-between items-end mb-8">
-      <div>
-        <h1 class="text-4xl font-bold tracking-tight mb-1">{{ 'DASH.T1' | translate }} <span class="font-light text-brand-400">{{ 'DASH.T2' | translate }}</span></h1>
-        <p class="text-sm font-mono text-slate-400 uppercase tracking-widest">Operator: {{ u.name }} // Level: {{ u.accessLevel }}</p>
+<div class="mx-auto max-w-6xl p-4 lg:p-8 route-in">
+  <div class="mb-8 flex items-end justify-between">
+    <div>
+      <h1 class="mb-1 text-4xl font-bold tracking-tight">Command <span class="font-light text-[#22d3ee]">Center</span></h1>
+      <p class="font-mono text-sm uppercase tracking-widest text-slate-400">Operator: {{ auth.user?.name }} // Level: Beta (Internal)</p>
+    </div>
+    <div class="text-right">
+      <div class="mb-1 font-mono text-xs text-[#22d3ee]">SYSTEM INTEGRITY</div>
+      <div class="text-2xl font-bold tracking-widest text-white">99.98%</div>
+    </div>
+  </div>
+
+  <div class="mb-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+    <div class="glass-panel relative flex items-center gap-6 overflow-hidden border-[#22d3ee]/30 p-5 lg:col-span-2">
+      <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-[#22d3ee] bg-[#164e63]">
+        <span class="text-2xl">{{ auth.user?.name?.charAt(0) }}</span>
       </div>
-      <div class="text-right">
-        <div class="text-xs font-mono text-brand-400 mb-1">SYSTEM INTEGRITY</div>
-        <div class="text-2xl font-bold text-white tracking-widest">99.98%</div>
+      <div>
+        <h3 class="text-xl font-bold text-white">{{ auth.user?.name }}</h3>
+        <p class="mb-2 font-mono text-sm text-[#67e8f9]">{{ auth.user?.role }}</p>
+        <div class="flex gap-4 font-mono text-xs text-slate-400">
+          <span>ID: {{ auth.user?.id }}</span>
+          <span>IP: 192.168.1.104 (SECURE)</span>
+        </div>
       </div>
     </div>
 
-    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-6">
-      <!-- Operator Card -->
-      <div class="glass-panel p-5 lg:col-span-2 border-brand-400/30 flex items-center gap-6 relative overflow-hidden">
-        <div class="absolute -right-10 -bottom-10 opacity-10">
-          <svg width="150" height="150" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="1"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        </div>
-        <div class="w-16 h-16 rounded-full bg-brand-900 border-2 border-brand-400 flex items-center justify-center shrink-0">
-          <span class="text-2xl">{{ u.name.charAt(0) }}</span>
-        </div>
-        <div>
-          <h3 class="text-xl font-bold text-white">{{ u.name }}</h3>
-          <p class="text-sm text-brand-300 font-mono mb-2">{{ u.role }}</p>
-          <div class="flex gap-4 text-xs font-mono text-slate-400">
-            <span>ID: {{ u.id }}</span>
-            <span>IP: 192.168.1.104 (SECURE)</span>
+    <div class="glass-panel group relative overflow-hidden p-5">
+      <div class="absolute right-0 top-0 h-16 w-16 rounded-bl-full bg-[#22d3ee]/10 transition-transform group-hover:scale-150"></div>
+      <p class="mb-1 font-mono text-xs text-slate-400">ACCESSIBLE RECORDS</p>
+      <p class="mb-2 text-4xl font-bold text-white">{{ auth.user?.role === 'Admin' ? 12 : 8 }}</p>
+      <div class="h-1.5 w-full overflow-hidden rounded-full bg-slate-800"><div class="h-full w-3/4 bg-[#22d3ee]"></div></div>
+    </div>
+
+    <div class="glass-panel group relative overflow-hidden border-[#ff003c]/30 p-5">
+      <div class="absolute right-0 top-0 h-16 w-16 rounded-bl-full bg-[#ff003c]/10 transition-transform group-hover:scale-150"></div>
+      <p class="mb-1 font-mono text-xs text-[#ff003c]">THREATS BLOCKED</p>
+      <p class="mb-2 text-4xl font-bold text-white">1,042</p>
+      <p class="font-mono text-xs text-slate-400">Last 24 hours</p>
+    </div>
+  </div>
+
+  <div class="mb-4 flex items-center justify-between mt-8">
+    <h3 class="font-mono text-sm font-bold uppercase tracking-wider text-[#67e8f9]">Custom Workspace</h3>
+    <button class="btn-cyber sm w-auto" (click)="addAll()">+ Add Widget</button>
+  </div>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <div *ngIf="widgets.has('gauge')" class="glass-panel p-5 animate-fade-in-up">
+      <div class="flex items-center justify-between mb-4 border-b border-[#22d3ee]/20 pb-4">
+        <span class="font-mono text-xs font-bold uppercase tracking-wider text-[#67e8f9]">Data Integrity Score</span>
+        <button (click)="removeWidget('gauge')" class="text-xs text-slate-500 hover:text-[#ff003c]">✕</button>
+      </div>
+      <div class="flex items-center gap-6">
+        <div class="relative inline-block" style="width: 132px; height: 132px;">
+          <svg viewBox="0 0 100 100" class="h-full w-full -rotate-90">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="8"/>
+            <circle cx="50" cy="50" r="42" fill="none" [attr.stroke]="averageScore >= 85 ? '#34d399' : '#22d3ee'" stroke-width="8" stroke-linecap="round" [attr.stroke-dasharray]="getCircumference()" [attr.stroke-dashoffset]="getDashOffset(averageScore)" style="transition: stroke-dashoffset 1.4s cubic-bezier(.16,1,.3,1); filter: drop-shadow(0 0 5px rgba(34,211,238,.6))"/>
+          </svg>
+          <div class="absolute inset-0 grid place-items-center text-center">
+            <div>
+              <p class="text-2xl font-bold text-white">{{ averageScore }}%</p>
+              <p class="text-[9px] font-mono uppercase text-slate-400">Average</p>
+            </div>
           </div>
         </div>
-      </div>
-
-      <!-- Quick Stats -->
-      <div class="glass-panel p-5 relative overflow-hidden group">
-        <div class="absolute top-0 right-0 w-16 h-16 bg-brand-400/10 rounded-bl-full group-hover:scale-150 transition-transform"></div>
-        <p class="text-xs font-mono text-slate-400 mb-1">ACCESSIBLE RECORDS</p>
-        <p class="text-4xl font-bold text-white mb-2">{{ u.role === 'Admin' ? 12 : 8 }}</p>
-        <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-          <div class="bg-brand-400 h-full w-3/4"></div>
-        </div>
-      </div>
-
-      <div class="glass-panel p-5 relative overflow-hidden group border-cyber-danger/30">
-        <div class="absolute top-0 right-0 w-16 h-16 bg-cyber-danger/10 rounded-bl-full group-hover:scale-150 transition-transform"></div>
-        <p class="text-xs font-mono text-cyber-danger mb-1">THREATS BLOCKED</p>
-        <p class="text-4xl font-bold text-white mb-2">1,042</p>
-        <p class="text-xs font-mono text-slate-400">Last 24 hours</p>
+        <ul class="flex-1 space-y-2 font-mono text-xs text-slate-400">
+          <li *ngFor="let c of topCandidates" class="flex justify-between">
+            <span>{{ c.name }}</span><span class="text-[#67e8f9]">{{ c.score }}%</span>
+          </li>
+        </ul>
       </div>
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-3 mb-8">
-      <!-- Live Network Traffic Simulation -->
-      <div class="glass-panel p-5 lg:col-span-2">
-        <div class="flex justify-between items-center mb-6">
-          <h3 class="text-sm font-mono text-brand-300 font-bold uppercase tracking-wider">Live Network Node Traffic</h3>
-          <span class="flex items-center gap-2 text-xs font-mono text-brand-400">
-            <span class="w-2 h-2 rounded-full bg-brand-400 animate-pulse"></span> ACTIVE STREAM
-          </span>
-        </div>
-        @defer (on idle) {
-          <app-traffic-chart />
-        } @placeholder {
-          <div class="h-48 border-b border-brand-400/20 pb-2"></div>
-        }
+    <div *ngIf="widgets.has('heatmap')" class="glass-panel p-5 animate-fade-in-up">
+      <div class="flex items-center justify-between mb-4 border-b border-[#22d3ee]/20 pb-4">
+        <span class="font-mono text-xs font-bold uppercase tracking-wider text-[#67e8f9]">Anomaly Heatmap · 30 Days</span>
+        <button (click)="removeWidget('heatmap')" class="text-xs text-slate-500 hover:text-[#ff003c]">✕</button>
       </div>
-
-      <!-- Active Protocols -->
-      <div class="glass-panel p-5">
-        <h3 class="text-sm font-mono text-brand-300 font-bold uppercase tracking-wider mb-6">Active Protocols</h3>
-        <div class="space-y-4">
-          @for (p of protocols; track p.name) {
-            <div class="flex justify-between items-center border-b border-white/5 pb-2">
-              <span class="text-xs font-mono text-slate-300">{{ p.name }}</span>
-              <span class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded border border-current" [class]="p.color">{{ p.status }}</span>
-            </div>
-          }
-        </div>
+      <div class="grid grid-cols-10 gap-1.5">
+        <div *ngFor="let i of heatmapCells" class="h-6 rounded-sm transition hover:brightness-150 animate-fade-in-up" [ngClass]="heatClass(i)" [style.animation-delay]="(i * 18) + 'ms'"></div>
       </div>
+      <p class="mt-3 text-right text-[10px] font-mono text-slate-500">Less ▫ ▫ ▫ ▫ More</p>
     </div>
-
-    <app-workspace />
   </div>
-  }`,
+</div>
+  `
 })
-export class DashboardComponent {
-  private auth = inject(AuthService);
-  readonly user = computed(() => this.auth.user());
-  readonly protocols = [
-    { name: 'Quantum Key Distribution', status: 'Active', color: 'text-brand-400' },
-    { name: 'Intrusion Detection Sys', status: 'Active', color: 'text-brand-400' },
-    { name: 'Neural Behavior Analysis', status: 'Scanning', color: 'text-cyber-purple' },
-    { name: 'External Port Lock', status: 'Engaged', color: 'text-cyber-danger' },
-  ];
+export class DashboardComponent implements OnInit {
+  private readonly api = inject(ApiService); 
+  readonly auth = inject(AuthService); 
+  readonly toast = inject(ToastService);
+  
+  candidates: any[] = []; 
+  loading = true; 
+  widgets = new Set(['gauge', 'heatmap', 'graph', 'feed']); 
+  readonly stages = ['Initiated', 'Queried', 'Verified', 'Cleared']; 
+  readonly heatmapCells = Array.from({ length: 30 }, (_, i) => i);
+  
+  get averageScore(): number { return this.candidates.length ? Math.round(this.candidates.reduce((s, c) => s + c.score, 0) / this.candidates.length) : 0; }
+  get topCandidates(): any[] { return [...this.candidates].sort((a, b) => b.score - a.score).slice(0, 3); }
+  
+  stageCount(stage: number): number { return this.candidates.filter(c => c.stage === stage).length; }
+  bar(stage: number): number { return this.candidates.length ? Math.round(this.stageCount(stage) / this.candidates.length * 100) : 0; }
+  
+  heatClass(i: number): string { 
+    const n = (i * 7 + 13) % 40; 
+    return n === 0 ? 'bg-white/5' : n < 6 ? 'bg-[#22d3ee]/20' : n < 14 ? 'bg-[#22d3ee]/40' : n < 24 ? 'bg-[#22d3ee]/70' : 'bg-[#67e8f9] shadow-[0_0_8px_#67e8f9]';
+  }
+
+  getCircumference(): number { return 2 * Math.PI * 42; }
+  getDashOffset(score: number): number { return this.getCircumference() * (1 - score / 100); }
+
+  ngOnInit(): void {
+    this.api.get<any[]>('/candidates').subscribe({
+      next: d => { this.candidates = d; this.loading = false; },
+      error: () => this.loading = false
+    });
+  }
+
+  removeWidget(id: string): void { this.widgets.delete(id); }
+  addWidget(id: string): void { this.widgets.add(id); this.toast.show(`${id.toUpperCase()} widget added`, 'ok'); }
+  addAll(): void { ['gauge', 'heatmap', 'graph', 'feed'].forEach(x => this.widgets.add(x)); }
 }
