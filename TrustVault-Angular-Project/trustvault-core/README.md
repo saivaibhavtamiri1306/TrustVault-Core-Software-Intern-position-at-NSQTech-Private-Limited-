@@ -25,8 +25,7 @@ Imagine a **treasure vault** in a spy movie.
 | In the movie | In this website |
 |---|---|
 | 🚪 The guard asks *"Who are you?"* | The **login page** asks for an ID, a key and your role (Admin or General User) |
-| 🔢 The guard texts you a secret code | The **2-step verification** asks for a 6-digit code that expires in 30 seconds |
-| 👁️ A laser scans your eye | The **biometric scan** animation turns the 3D world red |
+| 🔢 The guard asks for a code | The **demo verification** displays `123456`; type or paste it into six visible input boxes. No SMS is sent. The code expires in 30 seconds and can be renewed. |
 | 🗄️ Some drawers are locked for visitors | **Confidential files** stay locked unless you are an Admin |
 | 📜 A notebook writes down everything | The **Audit Ledger** records every action, and a robot (Web Worker) checks it was never changed |
 | 😴 The guard locks up if you fall asleep | **Idle logout** locks the vault after 60 seconds of doing nothing |
@@ -70,14 +69,14 @@ The login page also shows these on screen, with one-click buttons.
 | 14 | Lifecycle stepper | Inside the record modal | `timer` + `take` |
 | 15 | Page transitions | Click between pages | `@angular/animations` |
 | 16 | Integrity gauge | Dashboard + modal | SVG `stroke-dashoffset` |
-| 17 | Dynamic dashboard | Dashboard → **+ Add Widget** (Admin) | `ViewContainerRef.createComponent` |
-| 18 | 3D node graph | Add the *Verification Node Graph* widget | Three.js |
+| 17 | Customizable dashboard | **+ Add Widget** selects integrity, heatmap, verification progress, vault overview, candidate watchlist, or quick actions; remove widgets or restore defaults | Role-aware data and independent widget selection |
+| 18 | 3D background | Visible across the application | Three.js |
 | 19 | Virtual scrolling | **Audit Ledger** → 10,000 events | CDK `ScrollingModule` |
 | 20 | Anomaly heatmap | Dashboard | `@for` + dynamic classes |
 | 21 | Web Worker | Audit → *Verify chain in Web Worker* | `new Worker(new URL(...))` |
 | 22 | PDF export | Record modal → *Export PDF report* (Admin) | `jsPDF` + `html2canvas` |
 | 23 | CSV export | Data Vault → *Export CSV* | `Blob` + download |
-| 24 | 3 languages | Top-right language menu (English / తెలుగు / हिन्दी) | Signal-based translate pipe |
+| 24 | 3 languages | Language menu (English / తెలుగు / हिन्दी) across login and workspace | Signal-based translations and self-hosted Telugu/Hindi fonts |
 
 </details>
 
@@ -105,7 +104,7 @@ flowchart TB
     SVC --> I1[errorInterceptor]
     I1 --> I2[authInterceptor]
     I2 --> I3[cacheInterceptor<br/>offline-first]
-    I3 --> I4[mockBackendInterceptor<br/>dummy API + delays]
+    I3 --> I4[mockBackendInterceptor<br/>immediate demo responses]
     I4 -.swap for a real server.-> NET[(Your API)]
 ```
 
@@ -122,7 +121,7 @@ trustvault-core/
 │     ├─ core/        services, interceptors, guards, resolvers, mock API, i18n
 │     ├─ shared/      reusable pieces: card, gauge, heatmap, stepper, directives, pipes
 │     ├─ scene/       the 3D background (Three.js)
-│     ├─ auth/        login + 2-step code + biometric scan
+│     ├─ auth/        login + accessible 6-digit demo verification
 │     ├─ shell/       sidebar, header, page transitions, idle banner
 │     ├─ dashboard/   dashboard page
 │     ├─ workspace/   dynamic widgets
@@ -167,7 +166,7 @@ Open `src/app/core/api.config.ts`, set `USE_MOCK = false` and point `API_URL` at
 | Dummy API that stores & returns responses | `core/mock-backend.interceptor.ts` + `core/mock-data.ts` (persisted in the browser) |
 | Logged-in page shows user details + records table by access level | Dashboard + Data Vault |
 | Admin user management | Manage Users (create, suspend, restore) |
-| API delay by parameter + async processing | Delays on every call, polling, 10,000-row worker hash, progress bars |
+| Responsive API + async processing | Immediate demo responses, safe background polling, and 10,000-row worker hashing; no simulated login or decryption waits |
 | Load User Service on app load / modular code | `APP_INITIALIZER` restores the session; feature folders are lazy loaded |
 | Creative design + clean architecture | 3D scene, glass UI, `core / shared / features` structure |
 

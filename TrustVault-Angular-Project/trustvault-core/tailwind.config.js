@@ -4,8 +4,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Space Grotesk"', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'monospace'],
+        sans: ['var(--ui-font, "Space Grotesk")', '"Noto Sans Telugu Variable"', '"Noto Sans Devanagari Variable"', 'sans-serif'],
+        mono: ['"JetBrains Mono"', '"Noto Sans Telugu Variable"', '"Noto Sans Devanagari Variable"', 'monospace'],
       },
       colors: {
         brand: { 50: '#ecfeff', 100: '#cffafe', 300: '#67e8f9', 400: '#22d3ee', 500: '#06b6d4', 900: '#164e63' },
@@ -18,7 +18,7 @@ module.exports = {
         laser: 'laser 2s ease-in-out infinite alternate',
         float: 'float 6s ease-in-out infinite',
         glitch: 'glitch 0.2s linear infinite',
-        'fade-in-up': 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+        'fade-in-up': 'fadeInUp 0.15s ease-out forwards',
       },
       keyframes: {
         scanline: { '0%': { transform: 'translateY(-100%)' }, '100%': { transform: 'translateY(100vh)' } },

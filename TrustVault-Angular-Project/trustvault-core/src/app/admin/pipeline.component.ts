@@ -22,7 +22,7 @@ import { TranslatePipe } from '../shared/translate.pipe';
       @for (col of board(); track $index; let i = $index) {
         <div class="glass-panel min-h-[22rem] p-4">
           <div class="mb-4 flex items-center justify-between">
-            <h3 class="text-sm font-mono font-bold uppercase tracking-wider" [class]="i === 3 ? 'text-emerald-300' : 'text-brand-300'">{{ stages[i] }}</h3>
+            <h3 class="text-sm font-mono font-bold uppercase tracking-wider" [class]="i === 3 ? 'text-emerald-300' : 'text-brand-300'">{{ stages[i] | translate }}</h3>
             <span class="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-mono text-slate-300">{{ col.length }}</span>
           </div>
           <div cdkDropList [cdkDropListData]="col" [cdkDropListDisabled]="saving()" (cdkDropListDropped)="drop($event, i)" class="min-h-[16rem] space-y-3">

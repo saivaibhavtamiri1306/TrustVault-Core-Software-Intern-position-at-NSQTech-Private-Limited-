@@ -5,24 +5,25 @@ import { ApiService } from '../core/api.service';
 import { ToastService } from '../core/toast.service';
 import { CsvService } from '../core/csv.service';
 import { LogEntry } from '../core/models';
+import { TranslatePipe } from '../shared/translate.pipe';
 
 @Component({
   selector: 'tv-audit',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TranslatePipe],
   template: `
 <div class="mx-auto max-w-6xl p-4 lg:p-8 route-in">
   <div class="mb-8">
-    <h2 class="mb-1 text-3xl font-bold">Audit <span class="font-light text-[#22d3ee]">Ledger</span></h2>
-    <p class="font-mono text-sm text-slate-400">Cryptographically secure, append-only event log.</p>
+    <h2 class="mb-1 text-3xl font-bold">{{ 'Audit' | translate }} <span class="font-light text-[#22d3ee]">{{ 'Ledger' | translate }}</span></h2>
+    <p class="font-mono text-sm text-slate-400">{{ 'Cryptographically secure, append-only event log.' | translate }}</p>
   </div>
 
   <div class="glass-panel overflow-hidden border-[#22d3ee]/20">
     <div class="flex items-center justify-between border-b border-[#22d3ee]/30 bg-[#164e63]/30 p-4">
       <span class="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-[#22d3ee]">
-        <span class="h-2 w-2 rounded-full bg-emerald-400"></span> Ledger Integrity Confirmed
+        <span class="h-2 w-2 rounded-full bg-emerald-400"></span> {{ 'Demo audit ledger' | translate }}
       </span>
-      <button class="rounded border border-white/20 px-3 py-1 font-mono text-xs text-slate-400 hover:text-white" [disabled]="!events.length" (click)="exportCsv()">Export CSV</button>
+      <button class="rounded border border-white/20 px-3 py-1 font-mono text-xs text-slate-400 hover:text-white" [disabled]="!events.length" (click)="exportCsv()">{{ 'Export CSV' | translate }}</button>
     </div>
     
     <div *ngFor="let l of staticLogs" class="flex items-center border-b border-white/5 p-4 font-mono text-sm transition hover:bg-white/5" [ngClass]="l[4] ? 'border-l-2 border-l-[#ff003c] bg-[#ff003c]/10' : 'border-l-2 border-l-transparent'">
@@ -38,16 +39,16 @@ import { LogEntry } from '../core/models';
   <div class="glass-panel mt-8 overflow-hidden border-[#22d3ee]/20">
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#22d3ee]/30 bg-[#164e63]/30 p-4">
       <div>
-        <p class="font-mono text-xs uppercase tracking-widest text-[#22d3ee]">Live Event Stream · <span>{{ events.length | number }}</span> events</p>
-        <p class="font-mono text-[10px] text-slate-500">{{ vinfo }}</p>
+        <p class="font-mono text-xs uppercase tracking-widest text-[#22d3ee]">{{ 'Live Event Stream' | translate }} · <span>{{ events.length | number }}</span> {{ 'events' | translate }}</p>
+        <p class="font-mono text-[10px] text-slate-500">{{ 'Visible events' | translate }}: {{ visibleEvents.length }} / {{ events.length }}</p>
       </div>
       <div class="flex items-center gap-3">
         <div *ngIf="hashing" class="h-1.5 w-40 overflow-hidden rounded bg-white/10">
           <div class="h-full bg-[#22d3ee] transition-all duration-300" [style.width.%]="hashProgress"></div>
         </div>
-        <span *ngIf="hashResult" class="font-mono text-xs text-emerald-400">{{ hashResult }}</span>
+        <span *ngIf="hashResult" class="font-mono text-xs text-emerald-400">{{ hashComplete ? ('Hashed entries' | translate) + ': ' + events.length + ' · ' + hashTime + ' ms' : ('Could not verify the chain. Please retry.' | translate) }}</span>
         <button class="btn-cyber w-auto sm" [disabled]="hashing || events.length === 0" (click)="verifyChain()">
-          {{ hashing ? 'Hashing…' : 'Verify chain in Web Worker' }}
+          {{ (hashing ? 'Hashing…' : 'Verify chain in Web Worker') | translate }}
         </button>
       </div>
     </div>
@@ -62,7 +63,7 @@ import { LogEntry } from '../core/models';
             <span class="w-44 text-slate-500">{{ e.time }}</span>
             <span class="w-36 font-bold" [ngClass]="e.evt === 'AUTH_FAIL' || e.evt === 'FIREWALL_BLOCK' ? 'text-[#ff003c]' : 'text-emerald-400'">{{ e.evt }}</span>
             <span class="flex-1 text-slate-300">{{ e.user }} <span class="text-slate-600">·</span> {{ e.ip }}</span>
-            <span class="rounded border border-white/5 bg-black/40 px-2 py-1 text-[10px] text-slate-500">{{ e.hash ? (e.hash | slice:0:14) + '…' : 'not hashed yet' }}</span>
+            <span class="rounded border border-white/5 bg-black/40 px-2 py-1 text-[10px] text-slate-500">{{ e.hash ? (e.hash | slice:0:14) + '…' : ('not hashed yet' | translate) }}</span>
           </div>
 
         </div>
@@ -98,6 +99,8 @@ export class AuditComponent implements OnInit, OnDestroy {
   hashing = false;
   hashProgress = 0;
   hashResult = '';
+  hashComplete = false;
+  hashTime = 0;
   vinfo = 'Loading events...';
 
   private readonly rowHeight = 48;
@@ -142,6 +145,7 @@ export class AuditComponent implements OnInit, OnDestroy {
     this.hashing = true;
     this.hashProgress = 0;
     this.hashResult = '';
+    this.hashComplete = false;
     const fail = () => {
       this.worker?.terminate();
       this.worker = undefined;
@@ -158,6 +162,8 @@ export class AuditComponent implements OnInit, OnDestroy {
         if (data.type === 'progress') {
           this.hashProgress = data.pct;
         } else if (data.type === 'done') {
+          this.hashComplete = true;
+          this.hashTime = data.ms;
           this.events = this.events.map((event, index) => ({ ...event, hash: data.hashes[index] }));
           this.updateVirtualScroll(this.scrollHost.nativeElement.scrollTop);
           this.hashProgress = 100;

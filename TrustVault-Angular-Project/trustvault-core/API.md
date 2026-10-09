@@ -1,7 +1,7 @@
 # TrustVault API contract
 
 The app talks to an HTTP API through one typed service (`src/app/core/api.service.ts`).
-Today every call is answered by an in-app mock backend (`src/app/core/mock-backend.interceptor.ts`) with realistic delays,
+Today every call is answered immediately by an in-app mock backend (`src/app/core/mock-backend.interceptor.ts`),
 so the website works with **no server**. To use a real server:
 
 1. open `src/app/core/api.config.ts`

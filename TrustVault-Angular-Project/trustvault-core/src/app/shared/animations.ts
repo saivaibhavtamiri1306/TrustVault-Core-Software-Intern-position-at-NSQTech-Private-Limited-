@@ -4,7 +4,7 @@ import { animate, query, style, transition, trigger } from '@angular/animations'
 export const routeAnim = trigger('routeAnim', [
   transition('* <=> *', [
     query(':enter', [style({ opacity: 0, transform: 'translateY(18px) scale(.985)', filter: 'blur(6px)' })], { optional: true }),
-    query(':enter', [animate('550ms cubic-bezier(.16,1,.3,1)', style({ opacity: 1, transform: 'none', filter: 'blur(0)' }))], { optional: true }),
+    query(':enter', [animate('150ms ease-out', style({ opacity: 1, transform: 'none', filter: 'blur(0)' }))], { optional: true }),
   ]),
 ]);
 
