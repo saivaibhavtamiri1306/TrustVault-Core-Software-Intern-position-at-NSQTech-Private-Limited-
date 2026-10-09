@@ -1,10 +1,12 @@
-import { Component, OnInit, inject, OnDestroy } from '@angular/core';
+import { Component, HostListener, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../core/api.service';
 import { ToastService } from '../core/toast.service';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import { Subscription, switchMap, timer } from 'rxjs';
+import { Candidate, VaultRecord } from '../core/models';
+import { CsvService } from '../core/csv.service';
+import { ReportService } from '../core/report.service';
 
 @Component({
   selector: 'tv-records',
@@ -21,6 +23,11 @@ import html2canvas from 'html2canvas';
       {{ loading ? 'Decrypting...' : 'Fetch Records' }}
     </button>
   </div>
+
+  <div *ngIf="loadError && !loading" class="glass-panel mb-6 border-red-500/40 p-4 text-red-300" role="alert">
+    {{ loadError }} Use Fetch Records to retry.
+  </div>
+  <div *ngIf="!loading && !loadError && !records.length" class="glass-panel p-8 text-slate-400">No records are available.</div>
 
   <div *ngIf="loading" class="glass-panel mb-6 border-[#22d3ee]/50 p-8 animate-fade-in-up">
     <div class="mb-4 flex justify-between font-mono text-sm text-[#67e8f9]">
@@ -69,6 +76,7 @@ import html2canvas from 'html2canvas';
           </tr>
         </thead>
         <tbody class="divide-y divide-white/5 text-slate-300">
+          <tr *ngIf="!filtered.length"><td colspan="5" class="p-8 text-center text-slate-400">No records match your search or filters.</td></tr>
           <tr *ngFor="let r of filtered; let i = index" class="group animate-fade-in-up cursor-pointer transition hover:bg-[#22d3ee]/5" [style.animation-delay]="(i * 45) + 'ms'" (click)="open(r)">
             <td class="p-5 text-slate-500">{{ r.id }}</td>
             <td class="p-5 font-sans font-medium" [ngClass]="r.status === 'Locked' ? 'text-slate-600' : 'text-white group-hover:text-[#67e8f9]'">{{ r.title }}</td>
@@ -153,7 +161,11 @@ import html2canvas from 'html2canvas';
         </div>
       </div>
       
-      <div class="space-y-4" *ngIf="!selectedCandidate">
+      <div *ngIf="candidateError" class="text-sm text-red-300" role="alert">
+        {{ candidateError }}
+        <button class="btn-cyber mt-4" (click)="open(selected)">Retry details</button>
+      </div>
+      <div class="space-y-4" *ngIf="!selectedCandidate && !candidateError">
         <div class="h-6 w-1/2 animate-pulse rounded bg-white/10"></div>
         <div class="h-24 animate-pulse rounded bg-white/10"></div>
       </div>
@@ -172,24 +184,29 @@ import html2canvas from 'html2canvas';
 export class RecordsComponent implements OnInit, OnDestroy {
   private readonly api = inject(ApiService); 
   private readonly toast = inject(ToastService); 
+  private readonly csv = inject(CsvService);
+  private readonly report = inject(ReportService);
   
-  records: any[] = []; 
+  records: VaultRecord[] = [];
   loading = false; 
+  loadError = '';
+  candidateError = '';
   search = ''; 
   filterLevel = 'All';
   filterStatus = 'All';
   
-  selected: any = null;
-  selectedCandidate: any = null;
+  selected: VaultRecord | null = null;
+  selectedCandidate: Candidate | null = null;
   decrypted = false;
   pdfLoading = false;
-  private decryptTimer: any;
-  private pollTimer: any;
+  private decryptTimer?: ReturnType<typeof setTimeout>;
+  private fetchRequest?: Subscription;
+  private recordRequests = new Subscription();
 
   readonly stages = ['Initiated', 'Queried', 'Verified', 'Cleared'];
 
-  get filtered(): any[] {
-    const q = this.search.toLowerCase();
+  get filtered(): VaultRecord[] {
+    const q = this.search.trim().toLowerCase();
     return this.records.filter(r => 
       (this.filterLevel === 'All' || r.level === this.filterLevel) &&
       (this.filterStatus === 'All' || (this.filterStatus === 'Locked') === (r.status === 'Locked')) &&
@@ -202,19 +219,26 @@ export class RecordsComponent implements OnInit, OnDestroy {
   }
 
   fetch(): void {
+    this.fetchRequest?.unsubscribe();
     this.loading = true;
-    this.api.get<any[]>('/records').subscribe({
+    this.loadError = '';
+    this.fetchRequest = this.api.records().subscribe({
       next: d => { this.records = d; this.loading = false; },
-      error: (e: any) => { this.loading = false; this.toast.show((e as any)?.error?.message ?? 'Could not load records', 'err'); }
+      error: error => {
+        this.loading = false;
+        this.loadError = error?.error?.message ?? 'Could not load records.';
+        this.toast.show(this.loadError, 'err');
+      }
     });
   }
 
-  open(r: any): void {
+  open(r: VaultRecord): void {
     if (r.status === 'Locked') {
       this.toast.show('ACCESS DENIED: this record needs Admin clearance', 'err');
       return;
     }
     
+    this.close();
     this.selected = r;
     this.decrypted = false;
     
@@ -222,82 +246,52 @@ export class RecordsComponent implements OnInit, OnDestroy {
       this.decrypted = true;
     }, 2000);
 
-    this.api.get<any>(`/candidates/${r.candidateId}`).subscribe({
+    this.recordRequests.add(this.api.candidate(r.candidateId).subscribe({
       next: c => {
         this.selectedCandidate = c;
-        this.pollTimer = setInterval(() => {
-          this.api.get<any>(`/candidates/${r.candidateId}/status`).subscribe((status: any) => {
+        this.recordRequests.add(timer(3000, 3000).pipe(
+          switchMap(() => this.api.candidateStatus(r.candidateId))
+        ).subscribe({
+          next: status => {
             if (this.selectedCandidate && this.selectedCandidate.stage !== status.stage) {
-              this.selectedCandidate.stage = status.stage;
               this.toast.show('Verification update: ' + this.stages[status.stage], 'ok');
             }
-          });
-        }, 3000);
-      }
-    });
+            if (this.selectedCandidate) this.selectedCandidate = { ...this.selectedCandidate, ...status };
+          },
+          error: () => { this.candidateError = 'Live status is unavailable. Retry to reconnect.'; }
+        }));
+      },
+      error: error => { this.candidateError = error?.error?.message ?? 'Could not load candidate details.'; }
+    }));
   }
 
+  @HostListener('document:keydown.escape')
   close(): void {
     this.selected = null;
     this.selectedCandidate = null;
     clearTimeout(this.decryptTimer);
-    clearInterval(this.pollTimer);
+    this.recordRequests.unsubscribe();
+    this.recordRequests = new Subscription();
+    this.candidateError = '';
+    this.decrypted = false;
   }
 
   exportCsv(): void {
-    const rows = [['File ID', 'Asset Name', 'Clearance', 'Size', 'Status'], ...this.filtered.map(r => [r.id, r.title, r.level, r.size, r.status])];
-    const csv = rows.map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\r\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/css;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'trustvault-records.csv';
-    a.click();
-    URL.revokeObjectURL(a.href);
+    this.csv.download('trustvault-records.csv', ['File ID', 'Asset Name', 'Clearance', 'Size', 'Status'],
+      this.filtered.map(record => [record.id, record.title, record.level, record.size, record.status]));
     this.toast.show(`Exported ${this.filtered.length} rows to CSV`, 'ok');
   }
 
   async exportPdf(): Promise<void> {
-    if (!this.selected || !this.selectedCandidate) return;
+    if (!this.selected || !this.selectedCandidate || this.pdfLoading) return;
     this.pdfLoading = true;
-    
-    const el = document.createElement('div');
-    el.style.cssText = 'position:fixed;left:-10000px;top:0;width:794px;padding:48px;background:#fff;color:#0f172a;font-family:Arial,sans-serif';
-    
-    const row = (k: string, v: string) => `<tr><td style="padding:8px 0;color:#64748b;width:200px">${k}</td><td style="padding:8px 0;font-weight:bold">${v}</td></tr>`;
-    
-    el.innerHTML = `
-      <div style="border-bottom:4px solid #06b6d4;padding-bottom:16px;margin-bottom:24px">
-        <div style="font-size:12px;letter-spacing:4px;color:#06b6d4">TRUSTVAULT CORE</div>
-        <div style="font-size:28px;font-weight:bold;margin-top:6px">Background Verification Report</div>
-        <div style="font-size:12px;color:#64748b;margin-top:6px">Generated ${new Date().toLocaleString()} · DEMO DATA ONLY</div>
-      </div>
-      <table style="width:100%;border-collapse:collapse;font-size:15px">
-        ${row('Candidate', this.selectedCandidate.name)}
-        ${row('Applied role', this.selectedCandidate.role)}
-        ${row('Candidate ID', this.selectedCandidate.id)}
-        ${row('Source document', `${this.selected.title} (${this.selected.id})`)}
-        ${row('Clearance', this.selected.level)}
-        ${row('Data integrity score', this.selectedCandidate.score + '%')}
-        ${row('Verification stage', `${this.stages[this.selectedCandidate.stage]} (${this.selectedCandidate.stage + 1} of 4)`)}
-      </table>
-      <div style="margin-top:32px;display:flex;gap:8px">
-        ${this.stages.map((s, i) => `<div style="flex:1;padding:10px;text-align:center;font-size:12px;border-radius:6px;background:${i <= (this.selectedCandidate?.stage || 0) ? '#06b6d4' : '#e2e8f0'};color:${i <= (this.selectedCandidate?.stage || 0) ? '#fff' : '#64748b'}">${s}</div>`).join('')}
-      </div>
-      <p style="margin-top:40px;font-size:11px;color:#94a3b8">This document is part of a demonstration. All names and numbers are fictional.</p>
-    `;
-    
-    document.body.appendChild(el);
     try {
-      const cv = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff' });
-      const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
-      const w = pdf.internal.pageSize.getWidth();
-      pdf.addImage(cv.toDataURL('image/png'), 'PNG', 0, 0, w, cv.height * w / cv.width);
-      pdf.save(`TrustVault-${this.selectedCandidate.id}-report.pdf`);
+      await this.report.exportCandidate(this.selected, this.selectedCandidate, this.selectedCandidate.stage);
+      this.api.logEvent('EXPORT_PDF').subscribe({ error: () => undefined });
       this.toast.show('PDF report downloaded', 'ok');
-    } catch (e) {
+    } catch {
       this.toast.show('Could not build the PDF', 'err');
     } finally {
-      el.remove();
       this.pdfLoading = false;
     }
   }
@@ -306,6 +300,7 @@ export class RecordsComponent implements OnInit, OnDestroy {
   getDashOffset(score: number): number { return this.getCircumference() * (1 - score / 100); }
 
   ngOnDestroy(): void {
+    this.fetchRequest?.unsubscribe();
     this.close();
   }
 }

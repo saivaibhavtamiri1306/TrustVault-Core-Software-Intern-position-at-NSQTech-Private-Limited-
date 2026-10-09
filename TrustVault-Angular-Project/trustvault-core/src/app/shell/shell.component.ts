@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject } from '@angular/core';
+import { Component, DestroyRef, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NgClass } from '@angular/common';
 import { NavigationCancel, NavigationEnd, NavigationError, NavigationStart, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -17,7 +17,6 @@ interface NavItem { link: string; icon: string; key: string; }
   standalone: true,
   imports: [NgClass, RouterOutlet, RouterLink, RouterLinkActive, TranslatePipe, LanguageSwitcherComponent],
   animations: [routeAnim],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
   @if (navigating()) { <div class="fixed inset-x-0 top-0 z-[90] h-0.5 animate-pulse bg-gradient-to-r from-brand-400 via-cyber-purple to-cyber-danger"></div> }
 
@@ -66,8 +65,8 @@ interface NavItem { link: string; icon: string; key: string; }
       </header>
 
       <main class="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-20 custom-scrollbar">
-        <div [@routeAnim]="outlet.isActivated ? outlet.activatedRouteData['anim'] : ''">
-          <router-outlet #outlet="outlet" />
+        <div [@routeAnim]="animationState()">
+          <router-outlet />
         </div>
       </main>
     </div>
@@ -94,6 +93,12 @@ export class ShellComponent {
       filter(e => e instanceof NavigationStart || e instanceof NavigationEnd || e instanceof NavigationCancel || e instanceof NavigationError),
       map(e => e instanceof NavigationStart)),
     { initialValue: false });
+
+  readonly animationState = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map(event => event.urlAfterRedirects.split('?')[0])),
+    { initialValue: '' });
 
   private readonly base: NavItem[] = [
     { link: '/dashboard', key: 'NAV.DASH', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z' },

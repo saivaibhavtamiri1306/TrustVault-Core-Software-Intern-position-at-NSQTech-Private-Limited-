@@ -70,7 +70,7 @@ import { Session } from '../core/models';
             </div>
           </div>
           <div *ngIf="error" class="mt-4 font-mono text-xs font-bold text-[#ff003c]">{{ error }}</div>
-          <button class="mt-8 w-full rounded-lg border border-[#00f0ff]/40 bg-gradient-to-r from-[#06b6d4]/10 to-[#b535f6]/10 p-3 font-mono text-sm font-bold text-[#00f0ff] transition hover:border-[#00f0ff]/60 hover:shadow-[0_0_20px_rgba(0,240,255,0.3)] disabled:opacity-50">
+          <button type="submit" [disabled]="busy || form.invalid" class="mt-8 w-full rounded-lg border border-[#00f0ff]/40 bg-gradient-to-r from-[#06b6d4]/10 to-[#b535f6]/10 p-3 font-mono text-sm font-bold text-[#00f0ff] transition hover:border-[#00f0ff]/60 hover:shadow-[0_0_20px_rgba(0,240,255,0.3)] disabled:opacity-50">
             {{ busy ? 'PROCESSING...' : 'INITIALIZE CONNECTION' }}
           </button>
         </form>
@@ -160,7 +160,7 @@ export class LoginComponent implements OnDestroy {
 
   submit(): void {
     this.error = '';
-    if (this.form.invalid) return;
+    if (this.form.invalid || this.busy) return;
     this.busy = true;
 
     this.auth.login(this.form.value as any).subscribe({

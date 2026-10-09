@@ -1,8 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../core/api.service';
 import { AuthService } from '../core/auth.service';
 import { ToastService } from '../core/toast.service';
+import { Candidate } from '../core/models';
 
 @Component({
   selector: 'tv-dashboard',
@@ -13,7 +15,7 @@ import { ToastService } from '../core/toast.service';
   <div class="mb-8 flex items-end justify-between">
     <div>
       <h1 class="mb-1 text-4xl font-bold tracking-tight">Command <span class="font-light text-[#22d3ee]">Center</span></h1>
-      <p class="font-mono text-sm uppercase tracking-widest text-slate-400">Operator: {{ auth.user()?.name }} // Level: Beta (Internal)</p>
+      <p class="font-mono text-sm uppercase tracking-widest text-slate-400">Operator: {{ auth.user()?.name }} // Level: {{ auth.user()?.accessLevel }}</p>
     </div>
     <div class="text-right">
       <div class="mb-1 font-mono text-xs text-[#22d3ee]">SYSTEM INTEGRITY</div>
@@ -101,15 +103,16 @@ export class DashboardComponent implements OnInit {
   private readonly api = inject(ApiService); 
   readonly auth = inject(AuthService); 
   readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
   
-  candidates: any[] = []; 
+  candidates: Candidate[] = [];
   loading = true; 
   widgets = new Set(['gauge', 'heatmap', 'graph', 'feed']); 
   readonly stages = ['Initiated', 'Queried', 'Verified', 'Cleared']; 
   readonly heatmapCells = Array.from({ length: 30 }, (_, i) => i);
   
   get averageScore(): number { return this.candidates.length ? Math.round(this.candidates.reduce((s, c) => s + c.score, 0) / this.candidates.length) : 0; }
-  get topCandidates(): any[] { return [...this.candidates].sort((a, b) => b.score - a.score).slice(0, 3); }
+  get topCandidates(): Candidate[] { return [...this.candidates].sort((a, b) => b.score - a.score).slice(0, 3); }
   
   stageCount(stage: number): number { return this.candidates.filter(c => c.stage === stage).length; }
   bar(stage: number): number { return this.candidates.length ? Math.round(this.stageCount(stage) / this.candidates.length * 100) : 0; }
@@ -123,9 +126,12 @@ export class DashboardComponent implements OnInit {
   getDashOffset(score: number): number { return this.getCircumference() * (1 - score / 100); }
 
   ngOnInit(): void {
-    this.api.get<any[]>('/candidates').subscribe({
+    this.api.candidates().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: d => { this.candidates = d; this.loading = false; },
-      error: () => this.loading = false
+      error: () => {
+        this.loading = false;
+        this.toast.show('Could not load dashboard data. Reopen the Command Center to retry.', 'err');
+      }
     });
   }
 

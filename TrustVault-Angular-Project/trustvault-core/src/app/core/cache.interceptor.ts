@@ -23,11 +23,18 @@ export const cacheInterceptor: HttpInterceptorFn = (req, next) => {
       }
     }),
     catchError((err: HttpErrorResponse) => {
-      const raw = localStorage.getItem(key);
-      if (raw && (err.status === 0 || err.status >= 500)) {
-        net.offlineMode.set(true);
-        toast.show('Offline mode: showing the last cached data', 'warn');
-        return of(new HttpResponse({ status: 200, url: req.url, body: JSON.parse(raw) }));
+      if (err.status === 0 || err.status >= 500) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (raw) {
+            const body: unknown = JSON.parse(raw);
+            net.offlineMode.set(true);
+            toast.show('Offline mode: showing the last cached data', 'warn');
+            return of(new HttpResponse({ status: 200, url: req.url, body }));
+          }
+        } catch {
+          return throwError(() => err);
+        }
       }
       return throwError(() => err);
     }));

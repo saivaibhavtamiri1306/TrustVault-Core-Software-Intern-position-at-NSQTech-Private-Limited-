@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_URL } from './api.config';
-import { AppUser, Candidate, LoginRequest, Session } from './models';
+import { AppUser, Candidate, LoginRequest, Session, Stage, VaultRecord } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -23,6 +23,26 @@ export class ApiService {
 
   candidates(): Observable<Candidate[]> {
     return this.get<Candidate[]>('/candidates');
+  }
+
+  records(): Observable<VaultRecord[]> {
+    return this.get<VaultRecord[]>('/records');
+  }
+
+  candidate(id: string): Observable<Candidate> {
+    return this.get<Candidate>(`/candidates/${encodeURIComponent(id)}`);
+  }
+
+  candidateStatus(id: string): Observable<{ stage: Stage; score: number }> {
+    return this.get<{ stage: Stage; score: number }>(`/candidates/${encodeURIComponent(id)}/status`);
+  }
+
+  logEvent(evt: string): Observable<{ ok: boolean }> {
+    return this.post<{ ok: boolean }>('/audit/event', { evt });
+  }
+
+  checkId(id: string): Observable<{ exists: boolean }> {
+    return this.get<{ exists: boolean }>(`/users/check/${encodeURIComponent(id)}`);
   }
 
   get<T>(path: string, params?: Record<string, string | number | boolean>): Observable<T> {

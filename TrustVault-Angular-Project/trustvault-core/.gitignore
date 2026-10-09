@@ -11,3 +11,6 @@ Thumbs.db
 # secrets
 .env
 *.log
+
+.netlify/*
+!.netlify/results.md
