@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-label="TrustVault Core animated banner">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#050711"/>
+      <stop offset="100%" stop-color="#101b35"/>
+    </linearGradient>
+    <linearGradient id="titleGradient" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00f5ff"/>
+      <stop offset="50%" stop-color="#6485ff"/>
+      <stop offset="100%" stop-color="#d946ef"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop offset="0%" stop-color="#00e5ff" stop-opacity=".32"/>
+      <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#38bdf8" stroke-opacity=".09" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="360" rx="18" fill="url(#background)"/>
+  <rect width="1200" height="360" rx="18" fill="url(#grid)"/>
+
+  <circle cx="930" cy="175" r="210" fill="url(#glow)">
+    <animate attributeName="r" values="180;220;180" dur="5s" repeatCount="indefinite"/>
+  </circle>
+
+  <g stroke="#00e5ff" stroke-opacity=".35" fill="none">
+    <path d="M0 90H300L360 150H520"/>
+    <path d="M0 270H250L310 210H480"/>
+    <path d="M720 50H830L875 95"/>
+    <path d="M750 310H870L920 260H1200"/>
+    <circle cx="300" cy="90" r="4" fill="#00e5ff"/>
+    <circle cx="250" cy="270" r="4" fill="#00e5ff"/>
+    <circle cx="830" cy="50" r="4" fill="#00e5ff"/>
+  </g>
+
+  <g transform="translate(930 175)" fill="none">
+    <circle r="115" stroke="#00e5ff" stroke-opacity=".25" stroke-width="1">
+      <animate attributeName="r" values="105;120;105" dur="4s" repeatCount="indefinite"/>
+    </circle>
+
+    <circle r="90" stroke="#647cff" stroke-width="2" stroke-dasharray="15 12">
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="20s" repeatCount="indefinite"/>
+    </circle>
+
+    <ellipse rx="105" ry="38" stroke="#00e5ff" stroke-width="2">
+      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="10s" repeatCount="indefinite"/>
+    </ellipse>
+
+    <ellipse rx="105" ry="38" stroke="#d946ef" stroke-width="2">
+      <animateTransform attributeName="transform" type="rotate" from="60" to="-300" dur="13s" repeatCount="indefinite"/>
+    </ellipse>
+
+    <path d="M0 -48L42 -28V15Q35 43 0 60Q-35 43 -42 15V-28Z"
+          fill="#0a162b" stroke="#00e5ff" stroke-width="3"/>
+
+    <rect x="-17" y="-7" width="34" height="26" rx="5"
+          fill="#00e5ff" fill-opacity=".15" stroke="#00e5ff" stroke-width="2"/>
+
+    <path d="M-10 -7V-17A10 10 0 0 1 10 -17V-7"
+          stroke="#00e5ff" stroke-width="3"/>
+
+    <circle cy="5" r="4" fill="#00e5ff">
+      <animate attributeName="opacity" values="1;.25;1" dur="1.5s" repeatCount="indefinite"/>
+    </circle>
+
+    <g fill="#00e5ff">
+      <circle cx="0" cy="-115" r="5"/>
+      <circle cx="115" cy="0" r="4"/>
+      <circle cx="-80" cy="82" r="4"/>
+    </g>
+  </g>
+
+  <text x="70" y="94" font-family="Arial, Helvetica, sans-serif"
+        font-size="20" letter-spacing="7" fill="#67e8f9">SECURE DIGITAL ECOSYSTEM</text>
+
+  <text x="65" y="185" font-family="Arial, Helvetica, sans-serif"
+        font-size="76" font-weight="800" letter-spacing="-2"
+        fill="url(#titleGradient)">TRUSTVAULT</text>
+
+  <text x="70" y="245" font-family="Arial, Helvetica, sans-serif"
+        font-size="43" font-weight="700" fill="#ffffff">CORE</text>
+
+  <text x="72" y="282" font-family="monospace"
+        font-size="15" fill="#a5b4fc">ANGULAR · TYPESCRIPT · NODE.JS · MONGODB</text>
+
+  <text x="72" y="307" font-family="monospace"
+        font-size="14" fill="#94a3b8">REST APIs · CLOUD · RXJS · THREE.JS</text>
+
+  <rect x="70" y="325" width="300" height="3" rx="2" fill="#1e293b"/>
+  <rect x="70" y="325" width="80" height="3" rx="2" fill="#00e5ff">
+    <animate attributeName="width" values="30;300;30" dur="5s" repeatCount="indefinite"/>
+  </rect>
+</svg>
