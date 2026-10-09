@@ -11,7 +11,6 @@ import { ToastService } from '../core/toast.service';
   imports: [CommonModule, ReactiveFormsModule],
   template: `
 <div class="relative z-10 grid min-h-screen lg:grid-cols-2 bg-[#02040a]">
-  <!-- Left Side: Hero Text -->
   <section class="pointer-events-none z-10 hidden flex-col justify-center p-16 lg:flex">
     <div class="animate-fade-in-up" style="animation-delay:.1s">
       <div class="mb-6 flex items-center gap-4">
@@ -21,15 +20,12 @@ import { ToastService } from '../core/toast.service';
         <span class="text-2xl font-bold uppercase tracking-widest text-white">TrustVault <span class="text-[#22d3ee]">Core</span></span>
       </div>
       <h1 class="mb-6 text-6xl font-bold leading-tight text-white">Unbreachable <br/> <span class="bg-gradient-to-r from-[#00f0ff] to-[#06b6d4] bg-clip-text text-transparent">Quantum Security.</span></h1>
-      <p class="max-w-md border-l-2 border-[#22d3ee]/50 pl-4 text-lg font-light leading-relaxed text-slate-400">Military-grade encryption. Immutable audit ledgers. Real-time threat neutralization.<br/><br/><span class="font-mono text-sm text-[#67e8f9]">SYSTEM STATUS: OPTIMAL</span></p>
+      <p class="max-w-md border-l-2 border-[#22d3ee]/50 pl-4 text-lg font-light leading-relaxed text-slate-400">Military-grade encryption. Immutable audit ledgers. Real-time threat neutralization.</p>
     </div>
   </section>
 
-  <!-- Right Side: Login Form -->
   <section class="relative z-10 flex items-center justify-center p-6 lg:p-12">
     <div class="animate-fade-in-up w-full max-w-md" style="animation-delay:.2s">
-      
-      <!-- STEP 1: Credentials -->
       <ng-container *ngIf="step === 1">
         <div class="mb-4 rounded-xl border border-amber-400/40 bg-amber-400/10 p-4 text-xs font-mono">
           <p class="mb-2 font-bold uppercase tracking-widest text-amber-300">⚠ DEMO ENVIRONMENT</p>
@@ -55,15 +51,14 @@ import { ToastService } from '../core/toast.service';
             </div>
             <div class="h-3 w-3 animate-pulse rounded-full bg-[#22d3ee] shadow-[0_0_10px_#06b6d4]"></div>
           </div>
-          
           <div class="space-y-5">
             <div>
               <label class="mb-2 block font-mono text-xs uppercase tracking-widest text-slate-400">Operator ID</label>
-              <input class="w-full rounded-lg border border-white/10 bg-black/40 p-3 text-white font-mono outline-none focus:border-[#00f0ff] transition" formControlName="userId" placeholder="Enter ID (e.g., admin)">
+              <input class="w-full rounded-lg border border-white/10 bg-black/40 p-3 text-white font-mono outline-none focus:border-[#00f0ff] transition" formControlName="userId" placeholder="Enter your operator ID">
             </div>
             <div>
               <label class="mb-2 block font-mono text-xs uppercase tracking-widest text-slate-400">Security Key</label>
-              <input class="w-full rounded-lg border border-white/10 bg-black/40 p-3 text-white font-mono outline-none focus:border-[#00f0ff] transition" type="password" formControlName="password" placeholder="••••••••">
+              <input class="w-full rounded-lg border border-white/10 bg-black/40 p-3 text-white font-mono outline-none focus:border-[#00f0ff] transition" type="password" formControlName="password" placeholder="Enter your security key">
             </div>
             <div>
               <label class="mb-2 block font-mono text-xs uppercase tracking-widest text-slate-400">Access Role</label>
@@ -73,56 +68,46 @@ import { ToastService } from '../core/toast.service';
               </select>
             </div>
           </div>
-          
           <div *ngIf="error" class="mt-4 font-mono text-xs font-bold text-[#ff003c]">{{ error }}</div>
-          
-          <button class="mt-8 w-full rounded-lg border border-[#00f0ff]/40 bg-gradient-to-r from-[#06b6d4]/10 to-[#b535f6]/10 p-3 font-mono text-sm font-bold text-[#00f0ff] transition hover:border-[#00f0ff] hover:bg-[#00f0ff]/20 hover:shadow-[0_0_20px_rgba(0,240,255,0.4)]" type="submit" [disabled]="busy">
+          <button class="mt-8 w-full rounded-lg border border-[#00f0ff]/40 bg-gradient-to-r from-[#06b6d4]/10 to-[#b535f6]/10 p-3 font-mono text-sm font-bold text-[#00f0ff] transition hover:border-[#00f0ff]/60 hover:shadow-[0_0_20px_rgba(0,240,255,0.3)] disabled:opacity-50">
             {{ busy ? 'PROCESSING...' : 'INITIALIZE CONNECTION' }}
           </button>
         </form>
       </ng-container>
 
-      <!-- STEP 2: OTP / 2FA -->
       <ng-container *ngIf="step === 2">
         <div class="glass-panel p-8 text-center rounded-xl border border-[#22d3ee]/30 bg-black/40 backdrop-blur-md">
           <h2 class="mb-1 text-2xl font-bold text-white">Two-Factor Verification</h2>
           <p class="mb-6 font-mono text-xs text-[#22d3ee]">Enter the 6-digit code to continue.</p>
-          
           <div class="relative mx-auto w-fit">
             <div class="flex gap-2">
-              <div *ngFor="let n of [0,1,2,3,4,5]" class="grid h-14 w-11 place-items-center rounded-lg border bg-black/40 font-mono text-2xl text-white transition-all duration-200" [class.border-[#22d3ee]]="otp.length === n" [class.border-white/10]="otp.length !== n">
+              <div *ngFor="let n of [0,1,2,3,4,5]" class="grid h-14 w-11 place-items-center rounded-lg border bg-black/40 font-mono text-2xl text-white transition-all duration-200" [class.border-[#22d3ee] bg-[#22d3ee]/10]="otp[n]">
                 {{ otp[n] || '' }}
               </div>
             </div>
             <input class="absolute inset-0 h-full w-full cursor-text opacity-0" type="text" inputmode="numeric" maxlength="6" [value]="otp" (input)="otpInput($event)" autofocus>
           </div>
-          
           <div class="mx-auto mt-6 h-1.5 w-56 overflow-hidden rounded bg-white/10">
             <div class="h-full rounded transition-all duration-1000 ease-linear" [ngClass]="cooldown < 8 ? 'bg-[#ff003c]' : 'bg-gradient-to-r from-[#22d3ee] to-emerald-400'" [style.width.%]="(cooldown / 30) * 100"></div>
           </div>
-          
           <p class="mt-2 font-mono text-xs text-slate-400">
             <span *ngIf="cooldown > 0">Code expires in <b class="text-white">{{ cooldown }}s</b></span>
             <button *ngIf="cooldown === 0" (click)="resend()" class="font-bold text-[#67e8f9] underline">Resend code</button>
           </p>
-          
           <div *ngIf="error" class="mt-4 font-mono text-xs font-bold text-[#ff003c]">{{ error }}</div>
         </div>
       </ng-container>
 
-      <!-- STEP 3: Biometric Scan -->
       <ng-container *ngIf="step === 3">
         <div class="glass-panel relative overflow-hidden border-[#ff003c] p-8 text-center rounded-xl bg-black/40 backdrop-blur-md">
           <div class="absolute top-0 left-0 w-full h-[5px] bg-gradient-to-b from-transparent via-[#ff003c]/40 to-transparent" style="animation: scanline 2s linear infinite;"></div>
           <h2 class="mb-2 animate-pulse font-mono text-2xl font-bold uppercase tracking-wider text-[#ff003c]">Biometric Scan Active</h2>
           <p class="mb-8 font-mono text-xs text-slate-400">Please look directly into the scanner.</p>
-          
           <div class="relative mx-auto mb-8 flex h-48 w-48 items-center justify-center">
             <div class="absolute inset-0 rounded-full border-4 border-dashed border-[#ff003c] opacity-30" style="animation: spin 8s linear infinite;"></div>
             <div class="absolute inset-2 rounded-full border-2 border-[#22d3ee] opacity-50"></div>
             <div class="h-16 w-16 animate-pulse rounded-full bg-[#ff003c] blur-[10px]"></div>
           </div>
-          
           <div class="h-32 overflow-y-auto flex flex-col-reverse rounded border border-[#22d3ee]/30 bg-black/60 p-4 text-left font-mono text-[10px] leading-relaxed text-[#67e8f9]">
             <div class="animate-pulse">_</div>
             <div *ngFor="let log of logs" class="mb-1">{{ log }}</div>
@@ -130,7 +115,6 @@ import { ToastService } from '../core/toast.service';
         </div>
       </ng-container>
 
-      <!-- STEP 4: Success -->
       <ng-container *ngIf="step === 4">
         <div class="glass-panel border-[#22d3ee] p-10 text-center shadow-[0_0_30px_rgba(34,211,238,0.3)] rounded-xl bg-black/40 backdrop-blur-md">
           <div class="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-[#06b6d4]/20">
@@ -140,7 +124,6 @@ import { ToastService } from '../core/toast.service';
           <p class="font-mono text-sm text-[#22d3ee]">Decrypting vault contents...</p>
         </div>
       </ng-container>
-
     </div>
   </section>
 </div>
@@ -152,7 +135,7 @@ export class LoginComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
 
-  step: 1 | 2 | 3 | 4 = 1; 
+  step: 1 | 2 | 3 | 4 = 1;
   busy = false;
   error = '';
   otp = '';
@@ -203,8 +186,6 @@ export class LoginComponent implements OnDestroy {
     }
 
     this.busy = true;
-    
-    // Call the MFA/OTP verification
     this.auth.verifyMfa(value).subscribe({
       next: () => this.startScan(),
       error: (err: any) => {
