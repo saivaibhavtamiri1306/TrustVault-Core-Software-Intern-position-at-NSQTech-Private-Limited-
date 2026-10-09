@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../core/auth.service';
-import { ToastService } from '../shared/toast.service';
+import { ToastService } from '../core/toast.service';
 
 @Component({
   selector: 'tv-login',
