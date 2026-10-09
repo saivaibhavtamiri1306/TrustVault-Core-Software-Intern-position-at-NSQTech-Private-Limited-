@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #02040a;
+    color: #e2e8f0;
+    font-family: 'Space Grotesk', sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(circle at 15% 50%, rgba(6, 182, 212, 0.08), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(181, 53, 246, 0.08), transparent 25%);
+  }
+}
+
+@layer components {
+  /* Cinematic Noise Overlay */
+  .noise-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    pointer-events: none; z-index: 50; opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+
+  /* Scanline effect */
+  .scanline-fx {
+    position: absolute; top: 0; left: 0; width: 100%; height: 5px;
+    background: linear-gradient(to bottom, transparent, rgba(0, 240, 255, 0.3), transparent);
+    pointer-events: none; z-index: 40;
+  }
+
+  /* Advanced Glassmorphism */
+  .glass-panel {
+    background: rgba(10, 15, 30, 0.4);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 240, 255, 0.15);
+    border-radius: 1.25rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 240, 255, 0.02);
+    position: relative;
+    overflow: hidden;
+  }
+  .glass-panel::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.5), transparent);
+  }
+
+  .grad-text-cyan { background: linear-gradient(to right, #00f0ff, #06b6d4); -webkit-background-clip: text; color: transparent; }
+  .grad-text-purple { background: linear-gradient(to right, #b535f6, #00f0ff); -webkit-background-clip: text; color: transparent; }
+
+  .btn-cyber {
+    background: linear-gradient(90deg, rgba(6, 182, 212, 0.1), rgba(181, 53, 246, 0.1));
+    border: 1px solid rgba(0, 240, 255, 0.4);
+    border-radius: 0.5rem; padding: 0.75rem 1.5rem; font-weight: 600; color: #00f0ff;
+    text-transform: uppercase; letter-spacing: 0.1em; font-size: 0.875rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;
+    position: relative; overflow: hidden;
+  }
+  .btn-cyber:hover:not(:disabled) {
+    background: rgba(0, 240, 255, 0.15); box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+    border-color: #00f0ff; text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+  }
+  .btn-cyber::after {
+    content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: linear-gradient(transparent, rgba(255, 255, 255, 0.1), transparent);
+    transform: rotate(45deg) translateY(-100%); transition: transform 0.5s;
+  }
+  .btn-cyber:hover::after { transform: rotate(45deg) translateY(100%); }
+  .btn-cyber:disabled { opacity: 0.4; cursor: not-allowed; border-color: rgba(255, 255, 255, 0.1); color: #888; }
+
+  .input-cyber {
+    width: 100%; border-radius: 0.5rem; background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1); padding: 0.875rem 1rem; color: #fff;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.875rem;
+    outline: none; transition: all 0.3s;
+  }
+  .input-cyber:focus { border-color: #00f0ff; box-shadow: 0 0 15px rgba(0, 240, 255, 0.2); background: rgba(0, 240, 255, 0.05); }
+
+  /* Hexagon Grid Background */
+  .hex-bg {
+    background-image: url("data:image/svg+xml,%3Csvg width='40' height='69.2820323027551' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 17.32050807568877L40 51.96152422706632L20 69.2820323027551L0 51.96152422706632L0 17.32050807568877L20 0L40 17.32050807568877Z' fill='none' stroke='rgba(0, 240, 255, 0.03)' stroke-width='1'/%3E%3C/svg%3E");
+    background-size: 60px 103.923px;
+  }
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #02040a; }
+::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 240, 255, 0.6); }
+
+/* ---- Route components are custom elements: make them blocks so route animations can transform them ---- */
+app-dashboard, app-records, app-users, app-audit, app-pipeline { display: block; }
+
+/* ---- Angular CDK drag & drop (Kanban) ---- */
+.cdk-drag-preview {
+  box-sizing: border-box; border-radius: 0.75rem; padding: 1rem; color: #e2e8f0;
+  background: #0a0f1e; border: 1px solid #22d3ee;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6), 0 0 24px rgba(34, 211, 238, 0.35);
+}
+.cdk-drag-placeholder { opacity: 0.25; }
+.cdk-drag-animating { transition: transform 250ms cubic-bezier(0, 0, 0.2, 1); }
+.cdk-drop-list-dragging .cdk-drag { transition: transform 250ms cubic-bezier(0, 0, 0.2, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}

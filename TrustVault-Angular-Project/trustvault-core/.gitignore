@@ -1,0 +1,13 @@
+# dependencies and build output (never upload these)
+node_modules/
+dist/
+.angular/
+out-tsc/
+# editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+# secrets
+.env
+*.log
