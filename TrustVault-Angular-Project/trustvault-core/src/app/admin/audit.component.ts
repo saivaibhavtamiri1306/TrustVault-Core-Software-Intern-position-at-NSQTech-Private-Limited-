@@ -1,7 +1,7 @@
 import { Component, OnInit, ElementRef, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../core/api.service';
-import { ToastService } from '../shared/toast.service';
+import { ToastService } from '../core/toast.service';
 
 @Component({
   selector: 'tv-audit',
