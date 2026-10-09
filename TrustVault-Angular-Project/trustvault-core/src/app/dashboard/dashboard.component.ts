@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../core/api.service';
 import { AuthService } from '../core/auth.service';
-import { ToastService } from '../shared/toast.service';
+import { ToastService } from '../core/toast.service';
 
 @Component({
   selector: 'tv-dashboard',
