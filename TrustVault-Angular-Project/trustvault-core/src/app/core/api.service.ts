@@ -5,8 +5,6 @@ import { Observable } from 'rxjs';
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly http = inject(HttpClient);
-  
-  // This tells Angular to route calls to your Netlify Node.js functions
   private readonly base = '/api'; 
 
   get<T>(path: string, params?: Record<string, string | number | boolean>): Observable<T> {
@@ -21,6 +19,10 @@ export class ApiService {
 
   put<T>(path: string, body: unknown): Observable<T> {
     return this.http.put<T>(`${this.base}${path}`, body);
+  }
+
+  setStage(id: string, stage: number): Observable<any> {
+    return this.put(`/candidates/${id}/stage`, { stage });
   }
 
   delete<T>(path: string): Observable<T> {
