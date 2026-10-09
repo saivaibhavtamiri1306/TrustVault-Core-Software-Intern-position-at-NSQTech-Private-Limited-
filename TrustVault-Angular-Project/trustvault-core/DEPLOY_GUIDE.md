@@ -72,9 +72,11 @@ Drag it into https://app.netlify.com/drop and rename it `index.html` first. It w
 
 Open the failed deploy → **Deploy log**, find the first red line, and match it here:
 
+For a local Netlify CLI deployment, select a compatible Node.js runtime **before starting the CLI**. Run `nvm install` and `nvm use` from the application directory to select the version in `.nvmrc`, then confirm `netlify --version` reports Node.js 22.22.0 or a newer 22.x version. `NODE_VERSION` in `netlify.toml` selects the hosted build runtime; it does not replace the interpreter of an already-running local CLI process. An automated runner must likewise launch the CLI with a compatible Node.js executable.
+
 | Error in the log | Meaning | Fix |
 |---|---|---|
-| `Node.js version ... is not supported` | Wrong Node | Make sure `netlify.toml` has `NODE_VERSION = "20"` (it does). Clear cache and redeploy |
+| `Node.js version ... is not supported` / Angular runtime plugin requires a newer Node | Wrong Node | Keep `NODE_VERSION = "22.22.0"` in `netlify.toml` and the same version in `.nvmrc`. Clear cache and redeploy |
 | `npm ERR! ... ERESOLVE` | Dependency clash | Add an environment variable `NPM_FLAGS` = `--legacy-peer-deps` (Site configuration → Environment variables) |
 | `Cannot find module 'three'` / `jspdf` | Install didn't run | **Deploys → Trigger deploy → Clear cache and deploy site** |
 | `ng: not found` | Dependencies missing | Check `package.json` is at the **root** of the repo (not inside another folder) |
@@ -90,7 +92,7 @@ Open the failed deploy → **Deploy log**, find the first red line, and match it
 
 ## 🥈 Other hosts, quick recipes
 
-**Cloudflare Pages:** Workers & Pages → Create → Connect GitHub → Framework **Angular** → build `npm run build` → output `dist/client/browser` → add env var `NODE_VERSION=20`.
+**Cloudflare Pages:** Workers & Pages → Create → Connect GitHub → Framework **Angular** → build `npm run build` → output `dist/client/browser` → add env var `NODE_VERSION=22.22.0`.
 
 **Vercel:** New Project → import repo → it reads `vercel.json` → Deploy.
 

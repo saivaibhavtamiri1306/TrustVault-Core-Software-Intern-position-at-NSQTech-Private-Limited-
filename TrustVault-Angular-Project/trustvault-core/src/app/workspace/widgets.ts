@@ -90,7 +90,7 @@ export class FeedWidgetComponent implements Widget {
   readonly stages = toSignal(
     interval(4000).pipe(startWith(0), switchMap(() => this.api.candidates()),
       map(list => STAGES.map((name, i) => { const count = list.filter(c => c.stage === i).length; return { name, count, pct: list.length ? (count / list.length) * 100 : 0 }; }))),
-    { initialValue: [] as { name: string; count: number; pct: number }[] });
+    { initialValue: [] });
 }
 
 export interface WidgetDef { id: string; label: string; type: Type<Widget>; }

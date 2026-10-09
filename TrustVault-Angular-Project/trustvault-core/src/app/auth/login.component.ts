@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../core/auth.service';
 import { ToastService } from '../core/toast.service';
+import { Session } from '../core/models';
 
 @Component({
   selector: 'tv-login',
@@ -90,7 +91,7 @@ import { ToastService } from '../core/toast.service';
           
           <div class="relative mx-auto w-fit">
             <div class="flex gap-2">
-              <div *ngFor="let n of [0,1,2,3,4,5]" class="grid h-14 w-11 place-items-center rounded-lg border bg-black/40 font-mono text-2xl text-white transition-all duration-200" [class.border-[#22d3ee]]="otp.length === n" [class.border-white/10]="otp.length !== n">
+              <div *ngFor="let n of [0,1,2,3,4,5]" class="grid h-14 w-11 place-items-center rounded-lg border bg-black/40 font-mono text-2xl text-white transition-all duration-200" [ngClass]="otp.length === n ? 'border-[#22d3ee]' : 'border-white/10'">
                 {{ otp[n] || '' }}
               </div>
             </div>
@@ -161,6 +162,7 @@ export class LoginComponent implements OnDestroy {
 
   private timer?: any;
   private scanTimers: any[] = [];
+  private pendingSession: Session | null = null;
 
   form = this.fb.nonNullable.group({
     userId: ['', Validators.required],
@@ -179,7 +181,8 @@ export class LoginComponent implements OnDestroy {
     this.busy = true;
 
     this.auth.login(this.form.value as any).subscribe({
-      next: () => {
+      next: session => {
+        this.pendingSession = session;
         this.step = 2;
         this.busy = false;
         this.startCooldown();
@@ -257,8 +260,11 @@ export class LoginComponent implements OnDestroy {
     });
 
     this.scanTimers.push(setTimeout(() => {
+      if (!this.pendingSession) return;
+      this.auth.start(this.pendingSession);
+      this.pendingSession = null;
       this.step = 4;
-      setTimeout(() => this.router.navigateByUrl('/dashboard'), 1500);
+      this.scanTimers.push(setTimeout(() => this.router.navigateByUrl('/dashboard'), 1500));
     }, sequence.length * 400 + 800));
   }
 

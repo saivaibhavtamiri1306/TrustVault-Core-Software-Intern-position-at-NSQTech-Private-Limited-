@@ -3,7 +3,7 @@
   publish = "dist/client/browser"
 
 [build.environment]
-  NODE_VERSION = "20"
+  NODE_VERSION = "22.22.0"
 
 # Single-page app: every URL must serve index.html
 [[redirects]]

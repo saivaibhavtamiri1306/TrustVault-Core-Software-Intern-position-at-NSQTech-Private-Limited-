@@ -146,7 +146,7 @@ npm start          # opens http://localhost:4200
 npm run build      # makes the production site in dist/client/browser
 ```
 
-Needs **Node.js 18.19+ or 20** ([download](https://nodejs.org)).
+Uses **Node.js 22.22.0**, pinned in `.nvmrc` and `netlify.toml` to satisfy the Netlify Angular runtime plugin ([download](https://nodejs.org)).
 
 ## ☁️ Put it on the internet (free, 24/7)
 

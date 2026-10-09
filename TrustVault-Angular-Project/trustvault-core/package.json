@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "TrustVault Core: a demo background-verification platform built with Angular, Tailwind CSS and Three.js",
   "private": true,
+  "engines": {
+    "node": "^22.22.0"
+  },
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
